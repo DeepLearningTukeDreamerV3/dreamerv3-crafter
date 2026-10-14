@@ -1,0 +1,30 @@
+name: Large file check
+
+on:
+  pull_request:
+
+jobs:
+  large-files:
+    name: Large file check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reject files over 5 MB
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          limit=$((5 * 1024 * 1024))
+          fail=0
+          git diff --name-only --diff-filter=AM \
+              "origin/${BASE_REF}...HEAD" > changed.txt
+          while IFS= read -r f; do
+            [ -f "$f" ] || continue
+            size=$(stat -c %s "$f")
+            if [ "$size" -gt "$limit" ]; then
+              echo "::error file=$f::$f is $((size / 1024 / 1024)) MB (limit 5 MB)"
+              fail=1
+            fi
+          done < changed.txt
+          exit $fail

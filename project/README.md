@@ -5,9 +5,11 @@ TUKE MSc group project. Supervisor: prof. Ing. Peter Sinčák, CSc.
 Research question: can a learned latent world model support useful
 prediction and control from visual experience?
 
-- Assignment: [`docs/assignment.md`](docs/assignment.md)
+- Assignment: not in this public repo. Ask the team for the PDF; keep a
+  local copy at `project/docs/assignment.{md,pdf}` (git-ignored).
 - Plan: [`ROADMAP.md`](ROADMAP.md)
 - How we work: [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- How to push an update: [`docs/git-workflow.md`](docs/git-workflow.md)
 - Run registry: [`EXPERIMENTS.md`](EXPERIMENTS.md)
 - New to deep learning? [`docs/learning-path.md`](docs/learning-path.md), [`docs/glossary.md`](docs/glossary.md)
 
@@ -38,7 +40,7 @@ project/
 Needs Docker. GPU optional (NVIDIA Container Toolkit, see `DOCKER.md`).
 
 ```sh
-git clone git@github.com:<org>/dreamerv3-crafter.git
+git clone https://github.com/DeepLearningTukeDreamerV3/dreamerv3-crafter.git
 cd dreamerv3-crafter
 cp .env.example .env
 docker compose build                     # long the first time
@@ -60,16 +62,9 @@ On a small GPU (4 GB) use `CONFIGS="crafter size12m"` in `.env`, then
 
 See [`docs/hpc.md`](docs/hpc.md).
 
-## GitHub setup (once)
+## GitHub
 
-1. One member creates a free GitHub organization (github.com → + → New
-   organization) and invites the others as **Owners**.
-2. Create the empty repo `dreamerv3-crafter` in the org.
-3. Push this repo:
-   ```sh
-   git remote add origin git@github.com:<org>/dreamerv3-crafter.git
-   git push -u origin main
-   ```
-   The upstream code stays reachable through the `upstream` remote.
-4. Create an org Project (Projects → New → Roadmap template), milestones
-   M0–M5 and one issue per roadmap item.
+Org: [DeepLearningTukeDreamerV3](https://github.com/DeepLearningTukeDreamerV3).
+New members are added to the `members` team, which is requested for review
+on every PR (`.github/CODEOWNERS`). Branch rules on `main` are listed in
+[`docs/git-workflow.md`](docs/git-workflow.md#rules-enforced-by-github-on-main).

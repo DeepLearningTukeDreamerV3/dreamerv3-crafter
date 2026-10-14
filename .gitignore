@@ -16,3 +16,7 @@ logdir/
 *.sif
 runs/*/ckpt/
 runs/*/replay/
+
+# Course material, not public
+project/docs/assignment.md
+project/docs/assignment.pdf

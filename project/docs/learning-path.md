@@ -68,5 +68,13 @@ You can explain (assignment §8 requires this):
 ## Step 5 — Surveys for the report (weeks 4–7)
 
 At least one general and one robotics survey must be cited (assignment A.11):
-Ding et al. (general) and Hou et al., arXiv:2605.00080 (robot learning).
-Links are in [`assignment.md`](assignment.md), section A.11.
+Ding et al. (general) and Hou et al. (robot learning).
+
+- Ding et al. (2025), general survey: <https://doi.org/10.1145/3746449>
+- Hou et al. (2026), robot learning: <https://arxiv.org/abs/2605.00080>
+- Li et al. (2025), embodied AI: <https://arxiv.org/abs/2510.16732>
+- Kirchner et al. (2026), physical AI: <https://doi.org/10.1007/s44163-026-02122-1>
+- Optional: Guan et al. (2024) <https://doi.org/10.1109/TIV.2024.3398357>,
+  Long et al. (2025) <https://arxiv.org/abs/2507.00917>
+
+Suggested order: Ding → Hou → Li → Kirchner.

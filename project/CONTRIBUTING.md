@@ -2,8 +2,10 @@
 
 ## Git
 
+Step-by-step guide, conflicts and rescue: [`docs/git-workflow.md`](docs/git-workflow.md).
+
 - `main` is protected. Every change goes through a pull request with one
-  review from a teammate.
+  review from a teammate. Squash merge only.
 - Branch names: `<type>/<short-name>`, e.g. `infra/slurm-smoke`,
   `exp/imag-length-5`, `analysis/loss-curves`, `docs/architecture`.
 - Small PRs. One topic per PR.
