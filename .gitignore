@@ -1,0 +1,18 @@
+.pytest_cache
+dist
+__pycache__/
+*.py[cod]
+*.egg-info
+MUJOCO_LOG.TXT
+;
+
+# Project
+logdir/
+.env
+.idea/
+.junie/
+*.tar
+*.tar[0-9]*
+*.sif
+runs/*/ckpt/
+runs/*/replay/
