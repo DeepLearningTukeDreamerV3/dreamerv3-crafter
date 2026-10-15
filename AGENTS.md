@@ -60,6 +60,22 @@ Docs are part of the change, in the same PR, never "later":
 - A doc you read is wrong or outdated: fix it or say so; do not work
   around it silently.
 
+## Documentation
+
+Docs are part of the change, in the same PR, never "later":
+
+- Changed how something is installed, run, named or located: update
+  every doc that describes it (`README.md`, `project/ROADMAP.md`,
+  `project/CONTRIBUTING.md`, `project/docs/*`, `DOCKER.md`, this file).
+  `grep -rn` for the old name or command before opening the PR.
+- New script or folder: add it to the layout in `README.md` with one line
+  on what it does.
+- New technical term in docs or code comments: add it to
+  `project/docs/glossary.md`.
+- PR finishes a roadmap item: tick its checkbox in `project/ROADMAP.md`.
+- A doc you read is wrong or outdated: fix it or say so; do not work
+  around it silently.
+
 ## Experiments
 
 - Every run gets an ID `<date>-<short-name>-s<seed>` and a row in
