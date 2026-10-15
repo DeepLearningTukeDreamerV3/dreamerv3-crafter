@@ -107,6 +107,8 @@ For code completion and a debugger, open the repo in the dev container
 
 - **VS Code** (free): install the *Dev Containers* extension, then
   "Dev Containers: Reopen in Container". First start builds the image.
+  VS Code installed as a Flatpak: its terminal cannot see `docker`. Use a
+  normal terminal, or prefix commands with `flatpak-spawn --host`.
 - **GitHub Codespaces**: repo page → Code → Codespaces. Nothing to install
   locally; free hours for students with GitHub Education.
 - **PyCharm Pro** (free for students): Remote Development → Dev Containers,
