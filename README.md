@@ -43,7 +43,8 @@ a local copy at `docs/assignment.{md,pdf}` (git-ignored).
 ```
 README.md            you are here
 setup.sh             one-time setup for new members (./setup.sh)
-AGENTS.md            rules for AI assistants (CLAUDE.md imports it)
+AGENTS.md            rules for AI assistants
+CLAUDE.md            imports AGENTS.md for Claude Code
 ROADMAP.md           8-week plan with checkboxes
 CONTRIBUTING.md      branches, PRs, experiment naming
 EXPERIMENTS.md       every run, including failed ones
@@ -53,6 +54,10 @@ analysis/            plotting scripts and notebooks
 runs/                small logs of finished runs (metrics, scores, config)
 slurm/               SLURM job scripts (unused until we get HPC access)
 Dockerfile, compose.yaml, DOCKER.md   Docker setup
+.env.example         defaults for compose; setup.sh copies it to .env
+.devcontainer/       dev container for VS Code, Codespaces, PyCharm Pro
+.github/             CI (large file check), PR template, CODEOWNERS
+LICENSE              MIT, from upstream
 upstream/            danijar/dreamerv3 @ e3f0224, do not edit before M1
   dreamerv3/         agent, world model (rssm.py), configs.yaml
   embodied/          environments, replay, training loop

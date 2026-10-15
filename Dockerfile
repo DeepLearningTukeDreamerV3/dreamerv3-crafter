@@ -46,5 +46,7 @@ RUN mkdir /app
 WORKDIR /app
 COPY . .
 RUN chown -R 1000:root .
+# The repo is mounted at /app (compose.yaml): no root-owned __pycache__ there.
+ENV PYTHONDONTWRITEBYTECODE=1
 
 ENTRYPOINT ["sh", "/app/upstream/entrypoint.sh"]
