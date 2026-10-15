@@ -39,14 +39,15 @@ For every run, keep:
 - full command line
 - config blocks and changed flags
 - seed
-- hardware (`nvidia-smi`), cluster, job ID
+- hardware (`nvidia-smi`), machine owner; cluster and job ID if on HPC
 - environment snapshot (`project/scripts/env_snapshot.sh <run-id>`)
 - start/end time, status
 
 Failed and crashed runs stay in the registry with a note on what went
 wrong (assignment §8: failures must be analysed, not hidden).
 
-Logdir on the cluster: `$SCRATCH/dreamer/logdir/<run-id>`.
+Logdir: `LOGDIR` in `.env` (default `./logdir`, git-ignored). On a cluster:
+`$SCRATCH/dreamer/logdir/<run-id>`.
 Copy `metrics.jsonl`, `scores.jsonl`, `config.yaml` to `runs/<run-id>/`
 in git after the run.
 
