@@ -30,7 +30,7 @@ project/
   CONTRIBUTING.md       branches, PRs, experiment naming
   EXPERIMENTS.md        every run, including failed ones
   docs/                 assignment, learning path, glossary, architecture, HPC, report
-  slurm/                SLURM job scripts for the cluster
+  slurm/                SLURM job scripts (unused until we get HPC access)
   scripts/              env snapshot, local check, random-agent baseline
   analysis/             plotting scripts and notebooks
 ```
@@ -60,7 +60,8 @@ On a small GPU (4 GB) use `CONFIGS="crafter size12m"` in `.env`, then
 
 ## HPC
 
-See [`docs/hpc.md`](docs/hpc.md).
+No cluster access for now; all training is local. Cluster instructions,
+for later: [`docs/hpc.md`](docs/hpc.md).
 
 ## GitHub
 

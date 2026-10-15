@@ -1,5 +1,9 @@
 # HPC and SLURM
 
+> **Status: not used yet.** The team has no cluster access. All runs are
+> local (see `ROADMAP.md`). This page and `project/slurm/` are kept for
+> when access becomes available.
+
 ## What SLURM is
 
 A cluster has a login node and many compute nodes with GPUs. You never
