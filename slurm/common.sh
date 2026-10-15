@@ -1,5 +1,5 @@
 # Cluster settings shared by all SLURM scripts. Source this file.
-# TODO: fill in when we know the cluster (see project/docs/hpc.md).
+# TODO: fill in when we know the cluster (see docs/hpc.md).
 
 PARTITION="${PARTITION:-CHANGE_ME_gpu_partition}"
 ACCOUNT="${ACCOUNT:-CHANGE_ME_account}"
@@ -25,5 +25,5 @@ dreamer_exec() {
     -B "$LOGROOT:/logdir" \
     --pwd /app \
     "$SIF" \
-    sh /app/entrypoint.sh "$@"
+    sh /app/upstream/entrypoint.sh "$@"
 }

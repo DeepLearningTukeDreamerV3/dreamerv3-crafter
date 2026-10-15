@@ -51,8 +51,8 @@ You can explain:
 
 - DreamerV3 project page: https://danijar.com/project/dreamerv3/
 - Paper: https://arxiv.org/abs/2301.04104 (sections 1–3, figures 2–3)
-- Code: `dreamerv3/rssm.py` (world model), `dreamerv3/agent.py` (losses,
-  actor, critic), `dreamerv3/configs.yaml`
+- Code: `upstream/dreamerv3/rssm.py` (world model), `upstream/dreamerv3/agent.py` (losses,
+  actor, critic), `upstream/dreamerv3/configs.yaml`
 
 You can explain (assignment §8 requires this):
 

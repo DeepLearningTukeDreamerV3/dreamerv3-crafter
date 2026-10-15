@@ -38,7 +38,7 @@ Plain-language definitions. Add terms when you meet new ones.
   after an action.
 - **Latent state** — compact vector the model uses instead of the image.
 - **RSSM** (recurrent state-space model) — DreamerV3's world model
-  (`dreamerv3/rssm.py`). Its state has two parts:
+  (`upstream/dreamerv3/rssm.py`). Its state has two parts:
   - **deterministic state** (`deter`) — memory, updated by a recurrent network
   - **stochastic state** (`stoch`) — sampled categorical variables, models
     uncertainty

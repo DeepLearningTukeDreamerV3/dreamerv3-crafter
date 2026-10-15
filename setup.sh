@@ -42,7 +42,7 @@ if command -v gh >/dev/null; then
   if gh auth status >/dev/null 2>&1; then ok "gh logged in"
   else warn "gh not logged in. Run: gh auth login && gh auth setup-git"; fi
 else
-  warn "gh (GitHub CLI) missing. Optional, used in project/docs/git-workflow.md"
+  warn "gh (GitHub CLI) missing. Optional, used in docs/git-workflow.md"
 fi
 GPU=0
 if ! command -v nvidia-smi >/dev/null; then
@@ -80,7 +80,7 @@ if docker compose build; then ok "image dreamerv3 built"; else fail "docker comp
 
 if [ "$FAILURES" -eq 0 ]; then
   step "5. Local check inside the image"
-  if docker compose --profile cpu run --rm -T train-cpu python project/scripts/check_local.py; then
+  if docker compose --profile cpu run --rm -T train-cpu python scripts/check_local.py; then
     ok "check_local.py passed"
   else
     fail "check_local.py failed (output above)"

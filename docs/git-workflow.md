@@ -54,7 +54,7 @@ files. `git status` should only show files you meant to change.
 ### 4. Commit
 
 ```sh
-git add project/docs/architecture.md       # add files by name, not "git add ."
+git add docs/architecture.md       # add files by name, not "git add ."
 git commit -m "Add tensor shapes to architecture doc"
 ```
 

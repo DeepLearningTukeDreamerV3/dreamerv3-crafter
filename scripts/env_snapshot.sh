@@ -1,6 +1,6 @@
 #!/bin/bash
 # Save everything needed to reproduce a run: commit, diff, versions, GPU.
-# Usage: project/scripts/env_snapshot.sh <run-id>
+# Usage: scripts/env_snapshot.sh <run-id>
 # Output: runs/<run-id>/env.txt (commit this file).
 set -uo pipefail
 

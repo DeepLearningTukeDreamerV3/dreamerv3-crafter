@@ -1,3 +1,12 @@
 *.py[cod]
 __pycache__/
 dist
+
+# Not needed in the image (compose mounts the repo at runtime anyway)
+.git/
+.venv/
+venv/
+logdir/
+*.tar*
+ISSUES.md
+docs/assignment.*
