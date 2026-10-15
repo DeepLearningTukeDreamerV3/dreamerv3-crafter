@@ -55,3 +55,5 @@ in git after the run.
 
 Allowed. Every member must be able to explain any code we submit
 (assignment §6).
+Rules the assistant must follow: [`AGENTS.md`](../AGENTS.md) (Claude Code
+reads it through `CLAUDE.md`).
