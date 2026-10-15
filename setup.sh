@@ -21,6 +21,11 @@ WARNINGS=0
 FAILURES=0
 
 step "1. Prerequisites"
+if [ -f /.flatpak-info ]; then
+  warn "running inside a Flatpak sandbox (e.g. the VS Code Flatpak terminal):
+          docker, gh and nvidia-smi are hidden here. Run ./setup.sh from a normal
+          terminal, or here with: flatpak-spawn --host ./setup.sh"
+fi
 if command -v git >/dev/null; then ok "git $(git --version | cut -d' ' -f3)"; else fail "git missing"; fi
 if command -v docker >/dev/null; then
   ok "docker $(docker version --format '{{.Client.Version}}' 2>/dev/null)"
