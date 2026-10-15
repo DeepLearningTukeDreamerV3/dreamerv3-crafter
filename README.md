@@ -1,123 +1,106 @@
-# Mastering Diverse Domains through World Models
+# World Model Project: DreamerV3 on Crafter
 
-A reimplementation of [DreamerV3][paper], a scalable and general reinforcement
-learning algorithm that masters a wide range of applications with fixed
-hyperparameters.
+TUKE MSc group project. Supervisor: prof. Ing. Peter Sinčák, CSc.
 
-![DreamerV3 Tasks](https://user-images.githubusercontent.com/2111293/217647148-cbc522e2-61ad-4553-8e14-1ecdc8d9438b.gif)
+Research question: can a learned latent world model support useful
+prediction and control from visual experience?
 
-If you find this code useful, please reference in your paper:
+We train [DreamerV3](https://github.com/danijar/dreamerv3) on the
+[Crafter](https://github.com/danijar/crafter) game, then look inside it:
+what it predicts, how it imagines, where it fails.
+
+## Start here (new member, in this order)
+
+1. **This page**, to the end.
+2. **[`project/docs/git-workflow.md`](project/docs/git-workflow.md)**,
+   section "One-time setup". Then clone the repo.
+3. **[Quickstart](#quickstart-local)** below: build Docker, run the local
+   check and the CPU debug run.
+4. **[`project/ROADMAP.md`](project/ROADMAP.md)**: the 8-week plan. Read
+   the overview table and the current week.
+5. **[Project board](https://github.com/orgs/DeepLearningTukeDreamerV3/projects/1)**:
+   pick an issue of the current week, assign yourself.
+6. **[`project/docs/learning-path.md`](project/docs/learning-path.md)**:
+   start step 1. New to deep learning? This is for you.
+
+Then, when you need them:
+
+| When | Read |
+|---|---|
+| Before your first PR | [`project/CONTRIBUTING.md`](project/CONTRIBUTING.md) |
+| Unknown word | [`project/docs/glossary.md`](project/docs/glossary.md) |
+| Before starting a training run | [`project/EXPERIMENTS.md`](project/EXPERIMENTS.md) |
+| Docker or GPU problem | [`DOCKER.md`](DOCKER.md) |
+| Reading the DreamerV3 code (week 3) | [`project/docs/architecture.md`](project/docs/architecture.md) |
+| Original DreamerV3 README | [`UPSTREAM.md`](UPSTREAM.md) |
+| Cluster (not used yet) | [`project/docs/hpc.md`](project/docs/hpc.md) |
+
+The assignment is not in this public repo. Ask the team for the PDF; keep
+a local copy at `project/docs/assignment.{md,pdf}` (git-ignored).
+
+## Repository layout
 
 ```
-@article{hafner2025dreamerv3,
-  title={Mastering diverse control tasks through world models},
-  author={Hafner, Danijar and Pasukonis, Jurgis and Ba, Jimmy and Lillicrap, Timothy},
-  journal={Nature},
-  pages={1--7},
-  year={2025},
-  publisher={Nature Publishing Group}
-}
+README.md               you are here
+dreamerv3/, embodied/   upstream DreamerV3 code; do not edit before M1
+compose.yaml, DOCKER.md Docker setup
+UPSTREAM.md             original DreamerV3 README
+project/
+  ROADMAP.md            8-week plan with checkboxes
+  CONTRIBUTING.md       branches, PRs, experiment naming
+  EXPERIMENTS.md        every run, including failed ones
+  docs/                 learning path, glossary, git workflow, architecture, HPC, report
+  scripts/              local check, env snapshot, random agent, issue list
+  analysis/             plotting scripts and notebooks
+  slurm/                SLURM job scripts (unused until we get HPC access)
+runs/                   small logs of finished runs (metrics, scores, config)
 ```
 
-To learn more:
+## Quickstart (local)
 
-- [Research paper][paper]
-- [Project website][website]
-- [Twitter summary][tweet]
-
-## DreamerV3
-
-DreamerV3 learns a world model from experiences and uses it to train an actor
-critic policy from imagined trajectories. The world model encodes sensory
-inputs into categorical representations and predicts future representations and
-rewards given actions.
-
-![DreamerV3 Method Diagram](https://user-images.githubusercontent.com/2111293/217355673-4abc0ce5-1a4b-4366-a08d-64754289d659.png)
-
-DreamerV3 masters a wide range of domains with a fixed set of hyperparameters,
-outperforming specialized methods. Removing the need for tuning reduces the
-amount of expert knowledge and computational resources needed to apply
-reinforcement learning.
-
-![DreamerV3 Benchmark Scores](https://github.com/danijar/dreamerv3/assets/2111293/0fe8f1cf-6970-41ea-9efc-e2e2477e7861)
-
-Due to its robustness, DreamerV3 shows favorable scaling properties. Notably,
-using larger models consistently increases not only its final performance but
-also its data-efficiency. Increasing the number of gradient steps further
-increases data efficiency.
-
-![DreamerV3 Scaling Behavior](https://user-images.githubusercontent.com/2111293/217356063-0cf06b17-89f0-4d5f-85a9-b583438c98dd.png)
-
-# Instructions
-
-The code has been tested on Linux and Mac and requires Python 3.11+.
-
-## Docker
-
-You can either use the provided `Dockerfile` that contains instructions or
-follow the manual instructions below.
-
-## Manual
-
-Install [JAX][jax] and then the other dependencies:
+Needs Docker. GPU optional (NVIDIA Container Toolkit, see `DOCKER.md`).
 
 ```sh
-pip install -U -r requirements.txt
+git clone https://github.com/DeepLearningTukeDreamerV3/dreamerv3-crafter.git
+cd dreamerv3-crafter
+cp .env.example .env
+docker compose build                     # long the first time
+
+# 1. Local check: imports, env, config, one step.
+docker compose --profile cpu run --rm train-cpu python project/scripts/check_local.py
+
+# 2. CPU debug training (tiny network, stops with Ctrl+C).
+docker compose --profile cpu up train-cpu
+
+# 3. Look at the logs.
+docker compose up viewer                 # http://localhost:8000
 ```
 
-Training script:
+GPU runs (smoke test, baseline): use the exact commands in
+[`project/ROADMAP.md`](project/ROADMAP.md), week 2.
 
-```sh
-python dreamerv3/main.py \
-  --logdir ~/logdir/dreamer/{timestamp} \
-  --configs crafter \
-  --run.train_ratio 32
-```
+## Issues offline
 
-To reproduce results, train on the desired task using the corresponding config,
-such as `--configs atari --task atari_pong`.
+`project/scripts/issues_md.sh` writes `ISSUES.md` (git-ignored): every
+issue grouped by roadmap week, with board status and assignees. Rerun to
+refresh. Needs `gh` with the `project` scope (`gh auth refresh -h github.com -s project`).
 
-View results:
+## HPC
 
-```sh
-pip install -U scope
-python -m scope.viewer --basedir ~/logdir --port 8000
-```
+No cluster access for now; all training is local. Cluster instructions,
+for later: [`project/docs/hpc.md`](project/docs/hpc.md).
 
-Scalar metrics are also writting as JSONL files.
+## Upstream
 
-# Tips
+Based on [danijar/dreamerv3](https://github.com/danijar/dreamerv3) at commit
+`e3f02248693a79dc8b0ebd62c93683888ddaccfe` (MIT license). History was not
+kept. Local changes to upstream files: `Dockerfile` (DMLab install
+disabled, see `DOCKER.md`), `.gitignore`, `README.md` (moved to
+`UPSTREAM.md`).
 
-- All config options are listed in `dreamerv3/configs.yaml` and you can
-  override them as flags from the command line.
-- The `debug` config block reduces the network size, batch size, duration
-  between logs, and so on for fast debugging (but does not learn a good model).
-- By default, the code tries to run on GPU. You can switch to CPU or TPU using
-  the `--jax.platform cpu` flag.
-- You can use multiple config blocks that will override defaults in the
-  order they are specified, for example `--configs crafter size50m`.
-- By default, metrics are printed to the terminal, appended to a JSON lines
-  file, and written as Scope summaries. Other outputs like WandB and
-  TensorBoard can be enabled in the training script.
-- If you get a `Too many leaves for PyTreeDef` error, it means you're
-  reloading a checkpoint that is not compatible with the current config. This
-  often happens when reusing an old logdir by accident.
-- If you are getting CUDA errors, scroll up because the cause is often just an
-  error that happened earlier, such as out of memory or incompatible JAX and
-  CUDA versions. Try `--batch_size 1` to rule out an out of memory error.
-- Many environments are included, some of which require installing additional
-  packages. See the `Dockerfile` for reference.
-- To continue stopped training runs, simply run the same command line again and
-  make sure that the `--logdir` points to the same directory.
+## GitHub
 
-# Disclaimer
-
-This repository contains a reimplementation of DreamerV3 based on the open
-source DreamerV2 code base. It is unrelated to Google or DeepMind. The
-implementation has been tested to reproduce the official results on a range of
-environments.
-
-[jax]: https://github.com/google/jax#pip-installation-gpu-cuda
-[paper]: https://arxiv.org/pdf/2301.04104
-[website]: https://danijar.com/dreamerv3
-[tweet]: https://twitter.com/danijarh/status/1613161946223677441
+Org: [DeepLearningTukeDreamerV3](https://github.com/DeepLearningTukeDreamerV3).
+New members are added to the `members` team, which is requested for review
+on every PR (`.github/CODEOWNERS`). Branch rules on `main` are listed in
+[`project/docs/git-workflow.md`](project/docs/git-workflow.md#rules-enforced-by-github-on-main).

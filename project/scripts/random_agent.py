@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Random-action baseline for Crafter (Task 6).
 
 Plays N episodes with uniformly random actions and writes one JSON line per
