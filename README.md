@@ -60,6 +60,12 @@ runs/                   small logs of finished runs (metrics, scores, config)
 
 Needs Docker. GPU optional (NVIDIA Container Toolkit, see `DOCKER.md`).
 
+Do not `pip install -r requirements.txt` on your machine. The pinned
+packages need Python 3.11 and only install inside the Docker image. In
+PyCharm, use the Docker image as interpreter: Settings → Python
+Interpreter → Add Interpreter → On Docker Compose → service `train-cpu`,
+interpreter `/venv/bin/python`.
+
 ```sh
 git clone https://github.com/DeepLearningTukeDreamerV3/dreamerv3-crafter.git
 cd dreamerv3-crafter
