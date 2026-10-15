@@ -1,0 +1,25 @@
+// Dev container: open the repo inside the project Docker image (Python 3.11,
+// JAX, Crafter). Works with VS Code (Dev Containers extension), GitHub
+// Codespaces, Cursor and PyCharm Pro. CPU only; GPU training uses
+// `docker compose` (see project/ROADMAP.md, week 2).
+{
+  "name": "dreamerv3-crafter",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": ".."
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/app,type=bind",
+  "workspaceFolder": "/app",
+  "runArgs": ["--shm-size=8g"],
+  "containerEnv": {
+    "JAX_PLATFORMS": "cpu"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python"],
+      "settings": {
+        "python.defaultInterpreterPath": "/venv/bin/python"
+      }
+    }
+  }
+}

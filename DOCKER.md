@@ -100,6 +100,6 @@ cluster documentation.
   This is harmless.
 - The `Dockerfile` header comment uses `python main.py`. The real path is
   `dreamerv3/main.py`.
-- The README uses `python -m scope.viewer`. Recent `scope` releases ship the
+- `UPSTREAM.md` (the original README) uses `python -m scope.viewer`. Recent `scope` releases ship the
   viewer as the `scope` command, which the `viewer` service uses.
 - Consider adding `logdir/` and `.env` to `.gitignore`.

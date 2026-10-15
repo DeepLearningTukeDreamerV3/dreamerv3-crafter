@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Stage 1 local check (assignment section 5).
 
 Checks imports, config parsing, Crafter environment creation and one step.
