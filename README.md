@@ -61,10 +61,8 @@ runs/                   small logs of finished runs (metrics, scores, config)
 Needs Docker. GPU optional (NVIDIA Container Toolkit, see `DOCKER.md`).
 
 Do not `pip install -r requirements.txt` on your machine. The pinned
-packages need Python 3.11 and only install inside the Docker image. In
-PyCharm, use the Docker image as interpreter: Settings → Python
-Interpreter → Add Interpreter → On Docker Compose → service `train-cpu`,
-interpreter `/venv/bin/python`.
+packages need Python 3.11 and only install inside the Docker image.
+See [Editor and Python](#editor-and-python).
 
 ```sh
 git clone https://github.com/DeepLearningTukeDreamerV3/dreamerv3-crafter.git
@@ -84,6 +82,32 @@ docker compose up viewer                 # http://localhost:8000
 
 GPU runs (smoke test, baseline): use the exact commands in
 [`project/ROADMAP.md`](project/ROADMAP.md), week 2.
+
+## Editor and Python
+
+Edit files with any editor. Run Python inside the Docker image: the repo
+folders `dreamerv3/`, `embodied/`, `project/`, `runs/` are mounted, so
+edits are live without rebuilding.
+
+```sh
+docker compose --profile cpu run --rm train-cpu bash   # shell with everything installed
+python project/scripts/check_local.py                  # inside that shell
+```
+
+For code completion and a debugger, open the repo in the dev container
+(`.devcontainer/devcontainer.json`), CPU only:
+
+- **VS Code** (free): install the *Dev Containers* extension, then
+  "Dev Containers: Reopen in Container". First start builds the image.
+- **GitHub Codespaces**: repo page → Code → Codespaces. Nothing to install
+  locally; free hours for students with GitHub Education.
+- **PyCharm Pro** (free for students): Remote Development → Dev Containers,
+  or Python Interpreter → On Docker Compose, service `train-cpu`,
+  interpreter `/venv/bin/python`. PyCharm Community cannot use Docker
+  interpreters; use the shell above.
+
+Files created inside the container belong to `root` on Linux hosts. Fix
+with `sudo chown -R $USER: .` if needed.
 
 ## Issues offline
 
