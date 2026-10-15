@@ -12,7 +12,7 @@ change to the `Dockerfile` disables the DMLab install (see below).
 ## Setup
 
 ```sh
-cp .env.example .env   # optional, edit defaults
+./setup.sh             # or do it by hand: cp .env.example .env
 docker compose build   # first build is long: the image includes every env
 ```
 

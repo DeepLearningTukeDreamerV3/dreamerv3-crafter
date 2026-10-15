@@ -32,7 +32,7 @@ analysis tasks. Launch them early.
 ## Week 1 — M0: setup and basics
 
 - [x] Create GitHub org, repo, project board (see `README.md`).
-- [ ] Every member: install Docker, build image, run `scripts/check_local.py`.
+- [ ] Every member: install Docker, clone, run `./setup.sh` (builds the image, runs `scripts/check_local.py`).
 - [ ] Every member: run the CPU debug config (`docker compose --profile cpu up train-cpu`).
 - [ ] Commit an environment snapshot (`scripts/env_snapshot.sh`).
 - [ ] Find out which members have an NVIDIA GPU and how much memory it has.

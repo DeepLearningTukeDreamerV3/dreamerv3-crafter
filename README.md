@@ -14,8 +14,8 @@ what it predicts, how it imagines, where it fails.
 1. **This page**, to the end.
 2. **[`project/docs/git-workflow.md`](project/docs/git-workflow.md)**,
    section "One-time setup". Then clone the repo.
-3. **[Quickstart](#quickstart-local)** below: build Docker, run the local
-   check and the CPU debug run.
+3. **[Quickstart](#quickstart-local)** below: run `./setup.sh`, then the
+   CPU debug run.
 4. **[`project/ROADMAP.md`](project/ROADMAP.md)**: the 8-week plan. Read
    the overview table and the current week.
 5. **[Project board](https://github.com/orgs/DeepLearningTukeDreamerV3/projects/1)**:
@@ -42,6 +42,7 @@ a local copy at `project/docs/assignment.{md,pdf}` (git-ignored).
 
 ```
 README.md               you are here
+setup.sh                one-time setup for new members (./setup.sh)
 dreamerv3/, embodied/   upstream DreamerV3 code; do not edit before M1
 compose.yaml, DOCKER.md Docker setup
 UPSTREAM.md             original DreamerV3 README
@@ -67,11 +68,11 @@ See [Editor and Python](#editor-and-python).
 ```sh
 git clone https://github.com/DeepLearningTukeDreamerV3/dreamerv3-crafter.git
 cd dreamerv3-crafter
-cp .env.example .env
-docker compose build                     # long the first time
 
-# 1. Local check: imports, env, config, one step.
-docker compose --profile cpu run --rm train-cpu python project/scripts/check_local.py
+# 1. One-time setup: checks prerequisites, creates .env, builds the image
+#    (20-40 min the first time), runs the local check, tests the GPU.
+#    Safe to rerun. ./setup.sh --check only checks, changes nothing.
+./setup.sh
 
 # 2. CPU debug training (tiny network, stops with Ctrl+C).
 docker compose --profile cpu up train-cpu
