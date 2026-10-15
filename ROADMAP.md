@@ -32,7 +32,7 @@ analysis tasks. Launch them early.
 ## Week 1 — M0: setup and basics
 
 - [x] Create GitHub org, repo, project board (see `README.md`).
-- [ ] Every member: install Docker, build image, run `scripts/check_local.py`.
+- [ ] Every member: install Docker, clone, run `./setup.sh` (builds the image, runs `scripts/check_local.py`).
 - [ ] Every member: run the CPU debug config (`docker compose --profile cpu up train-cpu`).
 - [ ] Commit an environment snapshot (`scripts/env_snapshot.sh`).
 - [ ] Find out which members have an NVIDIA GPU and how much memory it has.
@@ -51,7 +51,7 @@ committed.
       (smaller model than the paper). Use this exact command:
 
       ```sh
-      docker compose --profile gpu run --rm train python dreamerv3/main.py \
+      docker compose --profile gpu run --rm train python upstream/dreamerv3/main.py \
         --logdir /logdir/20261026-baseline-s0 --configs crafter size12m --seed 0
       ```
 
@@ -72,7 +72,7 @@ committed.
 ## Week 3 — M2: understand the architecture
 
 - [ ] Learning: DreamerV3 paper (`docs/learning-path.md` step 4).
-- [ ] Task 2: trace one batch through `dreamerv3/agent.py` and `dreamerv3/rssm.py`.
+- [ ] Task 2: trace one batch through `upstream/dreamerv3/agent.py` and `upstream/dreamerv3/rssm.py`.
       Record name and shape of: observation, action, encoder tokens,
       deterministic and stochastic latent state, predicted reward,
       continuation, actor output, critic value. Fill `docs/architecture.md`.
@@ -89,7 +89,7 @@ committed.
 - [ ] Task 3: map each loss in `metrics.jsonl` to its component
       (`train/loss/image`, `rew`, `con`, `dyn`, `rep`, `policy`, `value`, `repval`).
 - [ ] Plot: episode return vs env steps; world-model losses vs train steps.
-- [ ] Compare the return curve with the published reference in `scores/`
+- [ ] Compare the return curve with the published reference in `upstream/scores/`
       (expect lower scores: smaller model).
 
 **Done when:** baseline reproduced, curves committed, M1 approved.
