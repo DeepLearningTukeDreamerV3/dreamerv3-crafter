@@ -1,7 +1,7 @@
 # HPC and SLURM
 
 > **Status: not used yet.** The team has no cluster access. All runs are
-> local (see `ROADMAP.md`). This page and `project/slurm/` are kept for
+> local (see `ROADMAP.md`). This page and `slurm/` are kept for
 > when access becomes available.
 
 ## What SLURM is
@@ -27,7 +27,7 @@ Clusters run **Apptainer**, not Docker. We convert our Docker image to a
 
 ## Fill in once we know the cluster
 
-Edit `project/slurm/common.sh`:
+Edit `slurm/common.sh`:
 
 | Variable | Ask IT / docs | Example |
 |---|---|---|
@@ -52,16 +52,16 @@ scp dreamerv3.sif <user>@<cluster>:<scratch>/
 
 Do not skip stages. Production GPU time must not find basic errors.
 
-1. **Local test** — `project/scripts/check_local.py` on your laptop.
+1. **Local test** — `scripts/check_local.py` on your laptop.
 2. **Interactive test** — on the cluster:
    ```sh
    srun -p <partition> -A <account> --gres=gpu:1 -t 00:30:00 --pty bash
-   bash project/slurm/00_interactive.sh
+   bash slurm/00_interactive.sh
    ```
    Checks GPU visibility, JAX device, model init, a few train steps, logs.
-3. **Smoke test** — `sbatch project/slurm/01_smoke.sbatch`. Debug config on
+3. **Smoke test** — `sbatch slurm/01_smoke.sbatch`. Debug config on
    GPU, ~20 min. Check that a checkpoint is written. Note steps per minute.
-4. **Production** — `sbatch project/slurm/02_train.sbatch <seed> [extra flags]`.
+4. **Production** — `sbatch slurm/02_train.sbatch <seed> [extra flags]`.
 
 Register every job in `EXPERIMENTS.md` with its job ID.
 

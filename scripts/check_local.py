@@ -4,14 +4,15 @@
 Checks imports, config parsing, Crafter environment creation and one step.
 Run from the repo root, inside the Docker image:
 
-  docker compose --profile cpu run --rm train-cpu python project/scripts/check_local.py
+  docker compose --profile cpu run --rm train-cpu python scripts/check_local.py
 """
 
 import pathlib
 import sys
 
-ROOT = pathlib.Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT))
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+UPSTREAM = ROOT / 'upstream'
+sys.path.insert(0, str(UPSTREAM))
 
 
 def main():
@@ -25,7 +26,7 @@ def main():
 
   print('2. Config parsing (defaults + crafter)')
   configs = yaml.YAML(typ='safe').load(
-      (ROOT / 'dreamerv3' / 'configs.yaml').read_text())
+      (UPSTREAM / 'dreamerv3' / 'configs.yaml').read_text())
   config = elements.Config(configs['defaults']).update(configs['crafter'])
   print('   task:', config.task, '| steps:', config.run.steps,
         '| train_ratio:', config.run.train_ratio,

@@ -4,7 +4,7 @@
 Plays N episodes with uniformly random actions and writes one JSON line per
 episode, in the same format as DreamerV3's scores.jsonl.
 
-  python project/scripts/random_agent.py --episodes 100 --seed 0 \
+  python scripts/random_agent.py --episodes 100 --seed 0 \
       --out runs/<run-id>/scores.jsonl
 """
 
@@ -15,8 +15,9 @@ import sys
 
 import numpy as np
 
-ROOT = pathlib.Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT))
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+UPSTREAM = ROOT / 'upstream'
+sys.path.insert(0, str(UPSTREAM))
 
 from embodied.envs import crafter  # noqa: E402
 

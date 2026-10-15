@@ -1,6 +1,6 @@
 # docker build -f Dockerfile -t img . && \
 # docker run -it --rm -v ~/logdir/docker:/logdir img \
-#   python main.py --logdir /logdir/{timestamp} --configs minecraft debug --task minecraft_diamond
+#   python upstream/dreamerv3/main.py --logdir /logdir/{timestamp} --configs minecraft debug --task minecraft_diamond
 
 FROM ghcr.io/nvidia/driver:7c5f8932-550.144.03-ubuntu24.04
 
@@ -38,7 +38,7 @@ RUN chown -R 1000:root /venv/lib/python3.11/site-packages/minerl
 
 # Requirements
 RUN pip install jax[cuda]==0.5.0
-COPY requirements.txt requirements.txt
+COPY upstream/requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 # Source
@@ -46,5 +46,7 @@ RUN mkdir /app
 WORKDIR /app
 COPY . .
 RUN chown -R 1000:root .
+# The repo is mounted at /app (compose.yaml): no root-owned __pycache__ there.
+ENV PYTHONDONTWRITEBYTECODE=1
 
-ENTRYPOINT ["sh", "entrypoint.sh"]
+ENTRYPOINT ["sh", "/app/upstream/entrypoint.sh"]

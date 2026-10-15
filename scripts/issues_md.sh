@@ -23,7 +23,7 @@ jq -r --slurpfile st "$tmp/status.json" --arg now "$(date '+%Y-%m-%d %H:%M')" --
   def box: if status == "Done" then "[x]" else "[ ]" end ;
   def who: if (.assignees|length) == 0 then "_unassigned_" else ([.assignees[].login] | map("@" + .) | join(", ")) end ;
   "# Issues\n",
-  "Generated \($now) by `project/scripts/issues_md.sh`. Do not edit; rerun to refresh.\n",
+  "Generated \($now) by `scripts/issues_md.sh`. Do not edit; rerun to refresh.\n",
   "Board: https://github.com/orgs/DeepLearningTukeDreamerV3/projects/1\n",
   (group_by(week | tonumber? // 99)[] |
     "## Week \(.[0] | week)\n",

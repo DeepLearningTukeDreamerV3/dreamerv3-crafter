@@ -1,7 +1,8 @@
 # Docker Compose
 
-`compose.yaml` wraps the upstream `Dockerfile` and `entrypoint.sh`. The only
-change to the `Dockerfile` disables the DMLab install (see below).
+`compose.yaml` wraps the `Dockerfile` (adapted from upstream) and
+`upstream/entrypoint.sh`. Changes to the upstream `Dockerfile`: DMLab
+install disabled (see below), paths point to `upstream/`.
 
 | Service     | Profile | Purpose                                   |
 |-------------|---------|-------------------------------------------|
@@ -38,7 +39,7 @@ docker compose --profile gpu up train
 
 # One-off run with custom flags.
 docker compose --profile gpu run --rm train \
-  python dreamerv3/main.py --logdir /logdir/pong --configs atari --task atari_pong
+  python upstream/dreamerv3/main.py --logdir /logdir/pong --configs atari --task atari_pong
 
 # Check that JAX sees the GPU.
 docker compose --profile gpu run --rm train \
@@ -51,8 +52,8 @@ docker compose up viewer
 Logs go to `./logdir` on the host. To resume a run, point `--logdir` to the
 same directory again.
 
-Code in `dreamerv3/`, `embodied/` and `project/` is bind-mounted, so edits apply without a
-rebuild. Changes to `requirements.txt` or the `Dockerfile` need
+The whole repo is bind-mounted at `/app`, so edits apply without a
+rebuild. Changes to `upstream/requirements.txt` or the `Dockerfile` need
 `docker compose build`.
 
 ### Small GPUs (4 GB)
@@ -80,7 +81,7 @@ Run inside a Slurm job:
 
 ```sh
 apptainer exec --nv -B $SCRATCH/logdir:/logdir dreamerv3.sif \
-  sh /app/entrypoint.sh python /app/dreamerv3/main.py \
+  sh /app/upstream/entrypoint.sh python /app/upstream/dreamerv3/main.py \
   --logdir /logdir/{timestamp} --configs crafter
 ```
 
@@ -98,8 +99,6 @@ cluster documentation.
   slower.
 - `entrypoint.sh` queries the GCP metadata server and prints `NA` outside GCP.
   This is harmless.
-- The `Dockerfile` header comment uses `python main.py`. The real path is
-  `dreamerv3/main.py`.
-- `UPSTREAM.md` (the original README) uses `python -m scope.viewer`. Recent `scope` releases ship the
+- `upstream/README.md` (the original README) uses `python -m scope.viewer`. Recent `scope` releases ship the
   viewer as the `scope` command, which the `viewer` service uses.
 - Consider adding `logdir/` and `.env` to `.gitignore`.

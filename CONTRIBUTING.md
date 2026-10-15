@@ -16,7 +16,7 @@ Step-by-step guide, conflicts and rescue: [`docs/git-workflow.md`](docs/git-work
 
 ## Upstream code
 
-- Do not edit `dreamerv3/` or `embodied/` before the official baseline is
+- Do not edit `upstream/dreamerv3/` or `upstream/embodied/` before the official baseline is
   reproduced (M1). After that, every change is a separate PR that explains
   why.
 - Prefer config flags (`--agent.imag_length 5`) over code changes.
@@ -40,7 +40,7 @@ For every run, keep:
 - config blocks and changed flags
 - seed
 - hardware (`nvidia-smi`), machine owner; cluster and job ID if on HPC
-- environment snapshot (`project/scripts/env_snapshot.sh <run-id>`)
+- environment snapshot (`scripts/env_snapshot.sh <run-id>`)
 - start/end time, status
 
 Failed and crashed runs stay in the registry with a note on what went
@@ -55,5 +55,5 @@ in git after the run.
 
 Allowed. Every member must be able to explain any code we submit
 (assignment §6).
-Rules the assistant must follow: [`AGENTS.md`](../AGENTS.md) (Claude Code
+Rules the assistant must follow: [`AGENTS.md`](AGENTS.md) (Claude Code
 reads it through `CLAUDE.md`).

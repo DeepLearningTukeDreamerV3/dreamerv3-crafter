@@ -12,49 +12,57 @@ what it predicts, how it imagines, where it fails.
 ## Start here (new member, in this order)
 
 1. **This page**, to the end.
-2. **[`project/docs/git-workflow.md`](project/docs/git-workflow.md)**,
+2. **[`docs/git-workflow.md`](docs/git-workflow.md)**,
    section "One-time setup". Then clone the repo.
 3. **[Quickstart](#quickstart-local)** below: run `./setup.sh`, then the
    CPU debug run.
-4. **[`project/ROADMAP.md`](project/ROADMAP.md)**: the 8-week plan. Read
+4. **[`ROADMAP.md`](ROADMAP.md)**: the 8-week plan. Read
    the overview table and the current week.
 5. **[Project board](https://github.com/orgs/DeepLearningTukeDreamerV3/projects/1)**:
    pick an issue of the current week, assign yourself.
-6. **[`project/docs/learning-path.md`](project/docs/learning-path.md)**:
+6. **[`docs/learning-path.md`](docs/learning-path.md)**:
    start step 1. New to deep learning? This is for you.
 
 Then, when you need them:
 
 | When | Read |
 |---|---|
-| Before your first PR | [`project/CONTRIBUTING.md`](project/CONTRIBUTING.md) |
-| Unknown word | [`project/docs/glossary.md`](project/docs/glossary.md) |
-| Before starting a training run | [`project/EXPERIMENTS.md`](project/EXPERIMENTS.md) |
+| Before your first PR | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
+| Unknown word | [`docs/glossary.md`](docs/glossary.md) |
+| Before starting a training run | [`EXPERIMENTS.md`](EXPERIMENTS.md) |
 | Docker or GPU problem | [`DOCKER.md`](DOCKER.md) |
-| Reading the DreamerV3 code (week 3) | [`project/docs/architecture.md`](project/docs/architecture.md) |
-| Original DreamerV3 README | [`UPSTREAM.md`](UPSTREAM.md) |
-| Cluster (not used yet) | [`project/docs/hpc.md`](project/docs/hpc.md) |
+| Reading the DreamerV3 code (week 3) | [`docs/architecture.md`](docs/architecture.md) |
+| Original DreamerV3 README | [`upstream/README.md`](upstream/README.md) |
+| Cluster (not used yet) | [`docs/hpc.md`](docs/hpc.md) |
 
 The assignment is not in this public repo. Ask the team for the PDF; keep
-a local copy at `project/docs/assignment.{md,pdf}` (git-ignored).
+a local copy at `docs/assignment.{md,pdf}` (git-ignored).
 
 ## Repository layout
 
 ```
-README.md               you are here
-setup.sh                one-time setup for new members (./setup.sh)
-dreamerv3/, embodied/   upstream DreamerV3 code; do not edit before M1
-compose.yaml, DOCKER.md Docker setup
-UPSTREAM.md             original DreamerV3 README
-project/
-  ROADMAP.md            8-week plan with checkboxes
-  CONTRIBUTING.md       branches, PRs, experiment naming
-  EXPERIMENTS.md        every run, including failed ones
-  docs/                 learning path, glossary, git workflow, architecture, HPC, report
-  scripts/              local check, env snapshot, random agent, issue list
-  analysis/             plotting scripts and notebooks
-  slurm/                SLURM job scripts (unused until we get HPC access)
-runs/                   small logs of finished runs (metrics, scores, config)
+README.md            you are here
+setup.sh             one-time setup for new members (./setup.sh)
+AGENTS.md            rules for AI assistants
+CLAUDE.md            imports AGENTS.md for Claude Code
+ROADMAP.md           8-week plan with checkboxes
+CONTRIBUTING.md      branches, PRs, experiment naming
+EXPERIMENTS.md       every run, including failed ones
+docs/                learning path, glossary, git workflow, architecture, HPC, report
+scripts/             setup check, env snapshot, random agent, issue list
+analysis/            plotting scripts and notebooks
+runs/                small logs of finished runs (metrics, scores, config)
+slurm/               SLURM job scripts (unused until we get HPC access)
+Dockerfile, compose.yaml, DOCKER.md   Docker setup
+.env.example         defaults for compose; setup.sh copies it to .env
+.devcontainer/       dev container for VS Code, Codespaces, PyCharm Pro
+.github/             CI (large file check), PR template, CODEOWNERS
+LICENSE              MIT, from upstream
+upstream/            danijar/dreamerv3 @ e3f0224, do not edit before M1
+  dreamerv3/         agent, world model (rssm.py), configs.yaml
+  embodied/          environments, replay, training loop
+  scores/            published reference scores
+  README.md          original DreamerV3 README
 ```
 
 ## Quickstart (local)
@@ -82,17 +90,16 @@ docker compose up viewer                 # http://localhost:8000
 ```
 
 GPU runs (smoke test, baseline): use the exact commands in
-[`project/ROADMAP.md`](project/ROADMAP.md), week 2.
+[`ROADMAP.md`](ROADMAP.md), week 2.
 
 ## Editor and Python
 
-Edit files with any editor. Run Python inside the Docker image: the repo
-folders `dreamerv3/`, `embodied/`, `project/`, `runs/` are mounted, so
-edits are live without rebuilding.
+Edit files with any editor. Run Python inside the Docker image: the whole
+repo is mounted at `/app`, so edits are live without rebuilding.
 
 ```sh
 docker compose --profile cpu run --rm train-cpu bash   # shell with everything installed
-python project/scripts/check_local.py                  # inside that shell
+python scripts/check_local.py                          # inside that shell
 ```
 
 For code completion and a debugger, open the repo in the dev container
@@ -112,26 +119,27 @@ with `sudo chown -R $USER: .` if needed.
 
 ## Issues offline
 
-`project/scripts/issues_md.sh` writes `ISSUES.md` (git-ignored): every
+`scripts/issues_md.sh` writes `ISSUES.md` (git-ignored): every
 issue grouped by roadmap week, with board status and assignees. Rerun to
 refresh. Needs `gh` with the `project` scope (`gh auth refresh -h github.com -s project`).
 
 ## HPC
 
 No cluster access for now; all training is local. Cluster instructions,
-for later: [`project/docs/hpc.md`](project/docs/hpc.md).
+for later: [`docs/hpc.md`](docs/hpc.md).
 
 ## Upstream
 
 Based on [danijar/dreamerv3](https://github.com/danijar/dreamerv3) at commit
 `e3f02248693a79dc8b0ebd62c93683888ddaccfe` (MIT license). History was not
-kept. Local changes to upstream files: `Dockerfile` (DMLab install
-disabled, see `DOCKER.md`), `.gitignore`, `README.md` (moved to
-`UPSTREAM.md`).
+kept. All upstream files live in `upstream/`, unchanged, except
+`Dockerfile`, `.dockerignore` and `.gitignore`, which moved to the repo
+root and were adapted (DMLab install disabled, see `DOCKER.md`; paths
+point to `upstream/`). `LICENSE` is copied at the root.
 
 ## GitHub
 
 Org: [DeepLearningTukeDreamerV3](https://github.com/DeepLearningTukeDreamerV3).
 New members are added to the `members` team, which is requested for review
 on every PR (`.github/CODEOWNERS`). Branch rules on `main` are listed in
-[`project/docs/git-workflow.md`](project/docs/git-workflow.md#rules-enforced-by-github-on-main).
+[`docs/git-workflow.md`](docs/git-workflow.md#rules-enforced-by-github-on-main).
