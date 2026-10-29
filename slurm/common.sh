@@ -4,7 +4,8 @@
 
 # Repo checkout on the cluster. Bind-mounted over /app so the job runs
 # the committed code, not the code baked into the image.
-REPO_DIR="${REPO_DIR:-$(git -C "$(dirname "${BASH_SOURCE[0]}")" rev-parse --show-toplevel)}"
+# Found from this file's location: compute nodes have no git.
+REPO_DIR="${REPO_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 
 # Our home folder is the parent of the repo clone (~/dreamerv3-crafter).
 # We do not trust $HOME: on PERUN compute nodes it can be wrong

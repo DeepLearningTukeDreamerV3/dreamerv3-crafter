@@ -5,13 +5,18 @@
 set -uo pipefail
 
 RUN_ID="${1:?run id required}"
-ROOT="$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/runs/$RUN_ID"
 mkdir -p "$OUT"
 
 PY=python
+GIT=git
 if [ -n "${SIF:-}" ] && [ -f "${SIF:-}" ]; then
   PY="apptainer exec $SIF python"
+  # Cluster compute nodes have no git; the image has it.
+  if ! command -v git >/dev/null; then
+    GIT="apptainer exec -B $ROOT $SIF git"
+  fi
 fi
 
 {
@@ -21,9 +26,9 @@ fi
   echo "slurm_job: ${SLURM_JOB_ID:-none}"
   echo
   echo "## Git"
-  git -C "$ROOT" rev-parse HEAD
-  git -C "$ROOT" status --short
-  git -C "$ROOT" diff --stat
+  $GIT -C "$ROOT" rev-parse HEAD
+  $GIT -C "$ROOT" status --short
+  $GIT -C "$ROOT" diff --stat
   echo
   echo "## Python / JAX"
   $PY --version
