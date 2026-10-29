@@ -55,6 +55,12 @@ Plain-language definitions. Add terms when you meet new ones.
 - **Open-loop prediction** — start from real observations, then predict the
   future using only actions. Shown as `openloop/*` videos in the logs.
 - **Replay buffer** — storage of past real experience used for training.
+- **Partial observability** — the agent sees only part of the world. In
+  Crafter: a small window around the player, not the whole map.
+- **Stochasticity** — randomness in the environment (e.g. where zombies
+  spawn). A world model can predict its likelihood, never the exact outcome.
+- **Reward-prediction error** — gap between the reward the world model
+  predicts and the reward the environment gives. Logged as `train/loss/rew`.
 - **`train_ratio`** — replayed steps trained per environment step. Crafter
   default: 512.
 

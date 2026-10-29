@@ -89,6 +89,8 @@ committed.
 - [ ] Task 3: map each loss in `metrics.jsonl` to its component
       (`train/loss/image`, `rew`, `con`, `dyn`, `rep`, `policy`, `value`, `repval`).
 - [ ] Plot: episode return vs env steps; world-model losses vs train steps.
+- [ ] Plot: reward-prediction error vs train steps (`train/loss/rew`, or
+      predicted vs real reward). Assignment A.8.
 - [ ] Compare the return curve with the published reference in `upstream/scores/`
       (expect lower scores: smaller model).
 
@@ -119,7 +121,10 @@ committed.
 - [ ] Sensitivity results vs default; explain the effect.
 - [ ] Task 8: failure cases: error growth over the open-loop horizon,
       missed sparse rewards, reward-model errors, crashed or failed runs
-      from `EXPERIMENTS.md`.
+      from `EXPERIMENTS.md`. Also discuss partial observability (the agent
+      sees only part of the map), stochasticity (random events the model
+      cannot predict), and why a useful latent prediction does not need an
+      exact pixel prediction.
 - [ ] GPU utilisation and wall-clock time of the main run.
 
 **Done when:** M4 approved, failure section drafted.
