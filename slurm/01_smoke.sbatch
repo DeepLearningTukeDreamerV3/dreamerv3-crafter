@@ -3,6 +3,8 @@
 # Usage: sbatch slurm/01_smoke.sbatch
 #SBATCH --job-name=dreamer-smoke
 #SBATCH --partition=gpu_short
+#SBATCH --account=perun26012624
+#SBATCH --qos=perun26012624
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G

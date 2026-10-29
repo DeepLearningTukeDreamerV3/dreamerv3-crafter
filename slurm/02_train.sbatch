@@ -8,6 +8,8 @@
 # Resubmit the same command to resume (same run ID -> same logdir).
 #SBATCH --job-name=dreamer-train
 #SBATCH --partition=gpu_long
+#SBATCH --account=perun26012624
+#SBATCH --qos=perun26012624
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G

@@ -62,7 +62,7 @@ At ~50k env steps (`step` in `metrics.jsonl`):
 
 ```sh
 L=/mnt/scratch/$USER/dreamer/logdir/<run-id>
-srun -p cpu_short -t 00:20:00 cp -r $L/ckpt $L/ckpt_early_<step>
+srun -p cpu_short -A perun26012624 --qos=perun26012624 -t 00:20:00 cp -r $L/ckpt $L/ckpt_early_<step>
 ```
 
 ## 6. Collect results (laptop)

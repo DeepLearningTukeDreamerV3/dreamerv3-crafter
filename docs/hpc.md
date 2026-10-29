@@ -18,7 +18,7 @@ user; heavy work there slows everyone down.
 | `rsync` / `scp` uploads | anything that runs longer than a few seconds |
 
 Need a shell to try things? Ask for one on a compute node:
-`srun -p cpu_short -c 4 --mem=8G -t 01:00:00 --pty bash`.
+`srun -p cpu_short -A perun26012624 --qos=perun26012624 -c 4 --mem=8G -t 01:00:00 --pty bash`.
 
 ## What SLURM is
 
@@ -51,11 +51,14 @@ PERUN runs **Apptainer**, not Docker. We convert our Docker image to a
 | CPU partitions | `cpu_short`, `cpu_long` |
 | `/mnt/home/$USER` | 500 GB, not purged: repo clone and `dreamerv3.sif` |
 | `/mnt/scratch/$USER` | fast Lustre storage, **deleted 60 days after last access**: logdirs (created by the admins; until it exists, `slurm/common.sh` uses home) |
-| `/mnt/project/...` | shared team storage for results |
-| Disk usage | `perunfsusage` |
+| Project | `perun26012624` ("Learning and Testing a Simple World Model with DREAMERV3"). Every job sets `--account` and `--qos` to it |
+| `/mnt/project/perun26012624` | 1000 GB shared team storage, not purged: results |
+| Disk usage, project, job limits | `perunfsusage` |
+| Choosing nodes | not allowed (`--nodelist` / `--exclude`) |
+| Support | `hpc@helpdesk.tuke.sk` |
 
 Our scripts use these values in `slurm/common.sh` (paths) and in the
-`#SBATCH` lines (partitions).
+`#SBATCH` lines (partition, project).
 
 ### SSH shortcut
 
@@ -111,7 +114,7 @@ Do not skip stages. Production GPU time must not find basic errors.
 1. **Local test** — `scripts/check_local.py` on your laptop.
 2. **Interactive test** — ask for a GPU shell, then run the checks in it:
    ```sh
-   srun -p gpu_short --gres=gpu:1 -c 8 --mem=32G -t 00:30:00 --pty bash   # login node
+   srun -p gpu_short -A perun26012624 --qos=perun26012624 --gres=gpu:1 -c 8 --mem=32G -t 00:30:00 --pty bash   # login node
    bash slurm/00_interactive.sh                                            # GPU node
    exit
    ```
@@ -142,7 +145,7 @@ Only the latest checkpoint is kept. Copy it early (~50k env steps), in a
 job, not on the login node:
 
 ```sh
-srun -p cpu_short -t 00:20:00 cp -r \
+srun -p cpu_short -A perun26012624 --qos=perun26012624 -t 00:20:00 cp -r \
   /mnt/scratch/$USER/dreamer/logdir/<run-id>/ckpt \
   /mnt/scratch/$USER/dreamer/logdir/<run-id>/ckpt_early_<step>
 ```
