@@ -1,7 +1,8 @@
 #!/bin/bash
 # Stage 3: short GPU smoke test with the debug config.
-# Usage: sbatch -p <partition> -A <account> slurm/01_smoke.sbatch
+# Usage: sbatch slurm/01_smoke.sbatch
 #SBATCH --job-name=dreamer-smoke
+#SBATCH --partition=gpu_short
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Stage 2: interactive check on a GPU node. Run inside an srun shell:
-#   srun -p <partition> -A <account> --gres=gpu:1 -t 00:30:00 --pty bash
+#   srun -p gpu_short --gres=gpu:1 -t 00:30:00 --pty bash
 #   bash slurm/00_interactive.sh
 set -euo pipefail
 source "$(dirname "$0")/common.sh"

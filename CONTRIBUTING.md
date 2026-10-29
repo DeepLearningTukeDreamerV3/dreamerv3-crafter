@@ -46,8 +46,8 @@ For every run, keep:
 Failed and crashed runs stay in the registry with a note on what went
 wrong (assignment §8: failures must be analysed, not hidden).
 
-Logdir: `LOGDIR` in `.env` (default `./logdir`, git-ignored). On a cluster:
-`$SCRATCH/dreamer/logdir/<run-id>`.
+Logdir: `LOGDIR` in `.env` (default `./logdir`, git-ignored). On PERUN:
+`/mnt/scratch/$USER/dreamer/logdir/<run-id>`.
 Copy `metrics.jsonl`, `scores.jsonl`, `config.yaml` to `runs/<run-id>/`
 in git after the run.
 

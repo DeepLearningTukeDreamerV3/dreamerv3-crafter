@@ -1,16 +1,17 @@
 #!/bin/bash
 # Stage 4: production run. Official Crafter config unless extra flags given.
 # Usage:
-#   sbatch -p <partition> -A <account> slurm/02_train.sbatch <seed> [run-name] [extra flags...]
+#   sbatch slurm/02_train.sbatch <seed> [run-name] [extra flags...]
 # Examples:
-#   sbatch ... 02_train.sbatch 0                                   # official baseline
-#   sbatch ... 02_train.sbatch 0 imag5 --agent.imag_length 5       # sensitivity
+#   sbatch slurm/02_train.sbatch 0                                   # official baseline
+#   sbatch slurm/02_train.sbatch 0 imag5 --agent.imag_length 5       # sensitivity
 # Resubmit the same command to resume (same run ID -> same logdir).
 #SBATCH --job-name=dreamer-train
+#SBATCH --partition=gpu_long
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
-#SBATCH --time=48:00:00
+#SBATCH --time=4-00:00:00
 #SBATCH --output=slurm-%x-%j.out
 set -euo pipefail
 cd "${SLURM_SUBMIT_DIR:-.}"

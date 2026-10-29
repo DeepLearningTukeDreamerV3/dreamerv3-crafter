@@ -1,10 +1,12 @@
 # Cluster settings shared by all SLURM scripts. Source this file.
-# TODO: fill in when we know the cluster (see docs/hpc.md).
+# Values for the PERUN cluster (TUKE), see docs/hpc.md. The partition is
+# set in the #SBATCH lines of each script, not here.
 
-PARTITION="${PARTITION:-CHANGE_ME_gpu_partition}"
-ACCOUNT="${ACCOUNT:-CHANGE_ME_account}"
-SCRATCH_DIR="${SCRATCH_DIR:-${SCRATCH:-$HOME}}"
-SIF="${SIF:-$SCRATCH_DIR/dreamerv3.sif}"
+# Fast storage for logdirs (replay, checkpoints). Deleted 60 days after
+# last access, so copy results to /mnt/project or the repo.
+SCRATCH_DIR="${SCRATCH_DIR:-/mnt/scratch/$USER}"
+# The image lives in home: home is not purged.
+SIF="${SIF:-$HOME/dreamerv3.sif}"
 MODULES="${MODULES:-}"
 
 # Repo checkout on the cluster. Bind-mounted over /app so the job runs
@@ -19,8 +21,9 @@ fi
 mkdir -p "$LOGROOT"
 
 # Run a command inside the container with GPU, code and logdir mounted.
+# --no-home: do not mount $HOME, as the PERUN wiki recommends.
 dreamer_exec() {
-  apptainer exec --nv \
+  apptainer exec --nv --no-home \
     -B "$REPO_DIR:/app" \
     -B "$LOGROOT:/logdir" \
     --pwd /app \
