@@ -3,8 +3,15 @@
 # set in the #SBATCH lines of each script, not here.
 
 # Fast storage for logdirs (replay, checkpoints). Deleted 60 days after
-# last access, so copy results to /mnt/project or the repo.
-SCRATCH_DIR="${SCRATCH_DIR:-/mnt/scratch/$USER}"
+# last access, so copy results to /mnt/project or the repo. Admins create
+# /mnt/scratch/$USER; until they do, fall back to home (500 GB, enough).
+if [ -z "${SCRATCH_DIR:-}" ]; then
+  if [ -d "/mnt/scratch/$USER" ]; then
+    SCRATCH_DIR="/mnt/scratch/$USER"
+  else
+    SCRATCH_DIR="$HOME"
+  fi
+fi
 # The image lives in home: home is not purged.
 SIF="${SIF:-$HOME/dreamerv3.sif}"
 MODULES="${MODULES:-}"

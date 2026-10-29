@@ -50,7 +50,7 @@ PERUN runs **Apptainer**, not Docker. We convert our Docker image to a
 | GPU partitions | `gpu_short` (max 2 days), `gpu_long` (max 4 days); nodes with 8× NVIDIA H200 |
 | CPU partitions | `cpu_short`, `cpu_long` |
 | `/mnt/home/$USER` | 500 GB, not purged: repo clone and `dreamerv3.sif` |
-| `/mnt/scratch/$USER` | fast Lustre storage, **deleted 60 days after last access**: logdirs |
+| `/mnt/scratch/$USER` | fast Lustre storage, **deleted 60 days after last access**: logdirs (created by the admins; until it exists, `slurm/common.sh` uses home) |
 | `/mnt/project/...` | shared team storage for results |
 | Disk usage | `perunfsusage` |
 
