@@ -5,11 +5,10 @@ assignment (§10). Each milestone ends with a team review: every member
 checks the "Done when" line before the next milestone starts (assignment
 §8: "every major phase must be validated").
 
-**No HPC access for now.** All training runs on members' local NVIDIA
-GPUs with Docker. The paper-size model does not fit a small GPU, so the
-baseline uses `CONFIGS="crafter size12m"` and is labelled non-official.
-Cluster work is kept for later, see [Week 8](#week-8--m5-final) and the
-issue "HPC runs (blocked: no access yet)".
+**Training runs on the PERUN cluster** (TUKE, SLURM + Apptainer, H200
+GPUs), with the official `crafter` config: see `docs/hpc.md`. Never
+work on the login node. Laptops are for debug runs, analysis and
+writing.
 
 Tasks are not assigned here. Put your name on the matching GitHub issue.
 
@@ -18,7 +17,7 @@ Tasks are not assigned here. Put your name on the matching GitHub issue.
 | Week | Dates | Milestone | Focus |
 |---|---|---|---|
 | 1 | 19–23 Oct | M0 | Setup, debug run on every machine, learning: DL + RL basics |
-| 2 | 26–30 Oct | M0 → M1 | Local GPU smoke test, launch Crafter baseline (`size12m`) |
+| 2 | 26–30 Oct | M0 → M1 | PERUN setup, staged tests, launch official Crafter baseline |
 | 3 | 2–6 Nov | M2 | Learning: world models; trace data flow; architecture diagram |
 | 4 | 9–13 Nov | M1 / M3 | Baseline done; world-model losses and learning curves |
 | 5 | 16–20 Nov | M3 | Prediction / imagination evidence |
@@ -41,25 +40,31 @@ analysis tasks. Launch them early.
 **Done when:** every member has run the debug config and the snapshot is
 committed.
 
-## Week 2 — M0 → M1: local GPU and baseline launch
+## Week 2 — M0 → M1: cluster setup and baseline launch
 
-- [ ] Smoke test on a local GPU: run the baseline command below with
-      `--logdir /logdir/smoke` for ~15 minutes, then Ctrl+C. Note the
-      wall-clock per 1k env steps and extrapolate to 1.1M.
-- [ ] Launch the **Crafter baseline** on the machine with the best GPU:
-      seed 0, code unchanged. Label it non-official in `EXPERIMENTS.md`
-      (smaller model than the paper). Use this exact command:
+- [x] Smoke test on a local GPU (`20261017-smoke-s0`): ~56 h for 1.1M
+      steps and ~23 GB replay RAM, too much for a laptop. So the baseline
+      runs on PERUN.
+- [ ] Build `dreamerv3.sif` and upload it to PERUN (`docs/hpc.md`).
+- [ ] Staged tests on PERUN: `slurm/00_interactive.sh` in an `srun` GPU
+      shell, then `sbatch slurm/01_smoke.sbatch`. Note steps per minute.
+- [ ] Register the run in `EXPERIMENTS.md`, then launch the **Crafter
+      baseline**: official config, seed 0, code unchanged:
+
+      ```sh
+      sbatch slurm/02_train.sbatch 0
+      ```
+
+- [ ] Optional local GPU run (laptop, non-official smaller model):
 
       ```sh
       docker compose --profile gpu run --rm train python upstream/dreamerv3/main.py \
-        --logdir /logdir/20261026-baseline-s0 --configs crafter size12m --seed 0
+        --logdir /logdir/<run-id> --configs crafter size12m --seed 0
       ```
 
-      Do not use `docker compose up train` for this run: it forces
+      Do not use `docker compose up train` for this: it forces
       `--run.train_ratio 32` (the `crafter` config uses 512) and writes to
       a new `{timestamp}` folder on every start, so it cannot resume.
-- [ ] Keep that machine on and plugged in. The run takes days.
-- [ ] Register the run in `EXPERIMENTS.md`.
 - [ ] Plan early checkpoint copies (needed in week 6, see below).
 - [ ] Learning: `docs/learning-path.md` step 3 (world models).
 
@@ -90,7 +95,7 @@ committed.
       (`train/loss/image`, `rew`, `con`, `dyn`, `rep`, `policy`, `value`, `repval`).
 - [ ] Plot: episode return vs env steps; world-model losses vs train steps.
 - [ ] Compare the return curve with the published reference in `upstream/scores/`
-      (expect lower scores: smaller model).
+      (same config as the paper, so scores should be close; explain any gap).
 
 **Done when:** baseline reproduced, curves committed, M1 approved.
 
@@ -130,10 +135,8 @@ committed.
 - [ ] Final README, technical report (`docs/report/`).
 - [ ] 10–15 min demo: environment behaviour + internal world-model workflow.
 - [ ] Tick all 12 deliverables below.
-- [ ] If HPC access exists by then: Apptainer image, `slurm/00_interactive.sh`,
-      `slurm/01_smoke.sbatch` (`docs/hpc.md`). Otherwise state in the report
-      that deliverable 8 used local GPUs only; the SLURM scripts are
-      provided but untested.
+- [ ] GPU execution evidence for deliverable 8: job IDs, `sacct` output,
+      `runs/<run-id>/env.txt` of the PERUN runs.
 
 No new experiments this week. It is the buffer for reruns.
 
@@ -146,7 +149,7 @@ No new experiments this week. It is the buffer for reruns.
 - [ ] 5. Prediction / imagination experiment
 - [ ] 6. Random-agent and early-checkpoint baselines
 - [ ] 7. One controlled sensitivity experiment
-- [ ] 8. SLURM scripts and GPU execution evidence (local GPU; SLURM untested without HPC)
+- [ ] 8. SLURM scripts and GPU execution evidence (PERUN)
 - [ ] 9. Error analysis with failure cases
 - [ ] 10. Reproducible repository with README
 - [ ] 11. Final technical report
@@ -154,11 +157,11 @@ No new experiments this week. It is the buffer for reruns.
 
 ## Risks
 
-- **No HPC access.** Everything runs locally with `CONFIGS="crafter size12m"`
-  (fits a 4 GB GPU). Results are not directly comparable with the paper.
-- **Laptop GPU interrupts the run** (sleep, reboot, overheating). DreamerV3
-  resumes from `<logdir>/ckpt` when the same command (same `--logdir`)
-  is run again.
+- **Job hits the 4-day limit or crashes.** DreamerV3 resumes from
+  `<logdir>/ckpt` when started with the same logdir:
+  `RUN_ID=<run-id> sbatch slurm/02_train.sbatch 0`.
+- **Scratch purge.** `/mnt/scratch` deletes files 60 days after last
+  access. Copy small logs to `runs/<run-id>/` when a run ends.
 - **Baseline too slow.** `train_ratio: 512` is heavy. Measure speed in the
   smoke test, extrapolate, and reduce the number of seeds if needed.
 - **Lost early checkpoint.** Copy it in week 2–3, see above.
