@@ -28,7 +28,7 @@ echo "Run ID: $RUN_ID (set RUN_ID=... to resume an older run)"
 bash scripts/env_snapshot.sh "$RUN_ID"
 
 dreamer_exec python upstream/dreamerv3/main.py \
-  --logdir "/logdir/$RUN_ID" \
+  --logdir "$RUN_LOGROOT/$RUN_ID" \
   --configs crafter \
   --seed "$SEED" \
   "$@"

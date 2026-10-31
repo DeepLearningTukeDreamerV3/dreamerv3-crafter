@@ -127,6 +127,29 @@ Register every job in `EXPERIMENTS.md` with its job ID. Watch a job
 from the login node with `squeue -u $USER` and
 `tail -f slurm-dreamer-train-<jobid>.out`.
 
+## Without Apptainer (temporary workaround)
+
+In October 2026 every `apptainer` command failed on the compute nodes
+with `FATAL: Couldn't determine user account information: user: unknown
+userid ...`. Compute nodes could not look up the user name of new
+accounts. Until the admins fix it, jobs can run without the container:
+
+1. Build the environment once, in a job. It downloads Python 3.11 and
+   the exact package versions of our image
+   (`slurm/requirements-native.txt`) into `~/dreamer-venv`:
+   ```sh
+   srun -p cpu_short -A perun26012624 --qos=perun26012624 -c 4 --mem=8G -t 01:00:00 bash slurm/setup_native.sh   # login node
+   ```
+   It ends with `OK: environment ready`.
+2. Put `RUNTIME=native` in front of the usual commands:
+   ```sh
+   RUNTIME=native bash slurm/00_interactive.sh        # GPU node
+   RUNTIME=native sbatch slurm/01_smoke.sbatch        # login node
+   ```
+
+Note `native` in the run's `EXPERIMENTS.md` row. Once Apptainer works,
+use the image again and delete `~/dreamer-venv`.
+
 ## Long runs
 
 `gpu_long` allows 4 days. If the baseline is not finished by then,

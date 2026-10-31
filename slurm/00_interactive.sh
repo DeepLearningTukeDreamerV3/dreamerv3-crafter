@@ -17,7 +17,7 @@ dreamer_exec python scripts/check_local.py
 echo "== Model init + a few train steps + log writing (debug config on GPU)"
 RUN_ID="$(date +%Y%m%d)-interactive"
 dreamer_exec python upstream/dreamerv3/main.py \
-  --logdir "/logdir/$RUN_ID" \
+  --logdir "$RUN_LOGROOT/$RUN_ID" \
   --configs crafter debug \
   --jax.platform cuda \
   --run.steps 500

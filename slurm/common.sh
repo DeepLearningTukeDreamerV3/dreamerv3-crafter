@@ -30,7 +30,22 @@ fi
 SIF="${SIF:-$USER_HOME/dreamerv3.sif}"
 MODULES="${MODULES:-}"
 LOGROOT="$SCRATCH_DIR/dreamer/logdir"
-echo "common.sh: repo $REPO_DIR, image $SIF, logs $LOGROOT"
+
+# How jobs run Python. apptainer (default): inside dreamerv3.sif.
+# native: temporary workaround while Apptainer fails on PERUN; uses the
+# environment built by slurm/setup_native.sh. Choose with
+# `RUNTIME=native sbatch ...`.
+RUNTIME="${RUNTIME:-apptainer}"
+VENV="${VENV:-$USER_HOME/dreamer-venv}"
+# The logdir root as the job sees it: the container mounts it at /logdir.
+if [ "$RUNTIME" = native ]; then
+  RUN_LOGROOT="$LOGROOT"
+else
+  RUN_LOGROOT=/logdir
+fi
+# Exported for scripts/env_snapshot.sh, which runs as a separate process.
+export SIF RUNTIME VENV
+echo "common.sh: repo $REPO_DIR, runtime $RUNTIME, logs $LOGROOT"
 
 if [ -n "$MODULES" ]; then
   module load $MODULES
@@ -40,7 +55,13 @@ mkdir -p "$LOGROOT"
 
 # Run a command inside the container with GPU, code and logdir mounted.
 # --no-home: do not mount $HOME, as the PERUN wiki recommends.
+# With RUNTIME=native: run it from the repo with the venv's python.
 dreamer_exec() {
+  if [ "$RUNTIME" = native ]; then
+    (cd "$REPO_DIR" && PATH="$VENV/bin:$PATH" PYTHONUNBUFFERED=1 \
+      PYTHONDONTWRITEBYTECODE=1 "$@")
+    return
+  fi
   apptainer exec --nv --no-home \
     -B "$REPO_DIR:/app" \
     -B "$LOGROOT:/logdir" \

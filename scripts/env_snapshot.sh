@@ -11,7 +11,9 @@ mkdir -p "$OUT"
 
 PY=python
 GIT=git
-if [ -n "${SIF:-}" ] && [ -f "${SIF:-}" ]; then
+if [ "${RUNTIME:-}" = native ]; then
+  PY="$VENV/bin/python"
+elif [ -n "${SIF:-}" ] && [ -f "${SIF:-}" ]; then
   PY="apptainer exec $SIF python"
   # Cluster compute nodes have no git; the image has it.
   if ! command -v git >/dev/null; then
@@ -26,9 +28,20 @@ fi
   echo "slurm_job: ${SLURM_JOB_ID:-none}"
   echo
   echo "## Git"
-  $GIT -C "$ROOT" rev-parse HEAD
-  $GIT -C "$ROOT" status --short
-  $GIT -C "$ROOT" diff --stat
+  if [ "${RUNTIME:-}" = native ] && ! command -v git >/dev/null; then
+    # No git on the node: read the commit from .git directly.
+    HEAD_REF="$(cat "$ROOT/.git/HEAD")"
+    echo "$HEAD_REF"
+    case "$HEAD_REF" in
+      ref:*) cat "$ROOT/.git/${HEAD_REF#ref: }" 2>/dev/null \
+               || grep " ${HEAD_REF#ref: }\$" "$ROOT/.git/packed-refs" ;;
+    esac
+    echo "(git not available: no status or diff)"
+  else
+    $GIT -C "$ROOT" rev-parse HEAD
+    $GIT -C "$ROOT" status --short
+    $GIT -C "$ROOT" diff --stat
+  fi
   echo
   echo "## Python / JAX"
   $PY --version
