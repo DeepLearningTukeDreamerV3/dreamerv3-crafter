@@ -120,7 +120,7 @@ Do not skip stages. Production GPU time must not find basic errors.
    ```
    Checks GPU visibility, JAX device, model init, a few train steps, logs.
 3. **Smoke test** — `sbatch slurm/01_smoke.sbatch`. Debug config on
-   GPU, ~20 min. Check that a checkpoint is written. Note steps per minute.
+   GPU, 100k steps, ~11 min. Check that a checkpoint is written. Note steps per minute.
 4. **Production** — `sbatch slurm/02_train.sbatch <seed> [run-name] [extra flags]`.
 
 Register every job in `EXPERIMENTS.md` with its job ID. Watch a job

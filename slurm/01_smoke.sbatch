@@ -21,6 +21,6 @@ dreamer_exec python upstream/dreamerv3/main.py \
   --logdir "/logdir/$RUN_ID" \
   --configs crafter debug \
   --jax.platform cuda \
-  --run.duration 1200
+  --run.steps 100000
 
 ls "$LOGROOT/$RUN_ID/ckpt"/*/done && echo "OK: checkpoint written"
