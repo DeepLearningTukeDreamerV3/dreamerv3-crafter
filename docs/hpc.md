@@ -92,8 +92,9 @@ checkpoint copy runs in a job through `srun`.
 | `scripts/perun.sh smoke <branch>` | pull the branch on the cluster, submit the smoke test |
 | `scripts/perun.sh submit <branch> <run-id> <seed> <name> [flags]` | pull, then `sbatch slurm/02_train.sbatch` |
 | `scripts/perun.sh early-ckpt <run-id> <step>` | copy `ckpt` to `ckpt_early_<step>`, in a job |
+| `scripts/perun.sh cancel <jobid>` | `scancel` a job; a run resumes from its last checkpoint (saved every 15 min) |
 
-`smoke`, `submit` and `early-ckpt` use cluster time, so they ask y/N.
+`smoke`, `submit`, `early-ckpt` and `cancel` change the cluster, so they ask y/N.
 Without a terminal, put `-y` first: `scripts/perun.sh -y smoke main`.
 The cluster clone is only updated with `git pull --ff-only`. Arguments
 with spaces or shell characters are refused. The script gives up after 10 s
@@ -104,7 +105,7 @@ cannot ask for the passphrase.
 **With Claude Code.** In Claude Code, type `! scripts/perun.sh status`.
 The output then shows up in the chat, so you do not copy it by hand.
 Claude may also run `status`, `log` and `fetch` without asking. It must ask you before
-`smoke`, `submit` and `early-ckpt`. `.claude/settings.json` and the hook
+`smoke`, `submit`, `early-ckpt` and `cancel`. `.claude/settings.json` and the hook
 `.claude/hooks/block_perun.py` block every other way to reach PERUN
 (`ssh`, `scp`, `rsync`, also inside `bash -c` or a new script). They also
 stop Claude from changing these files without your approval. This
