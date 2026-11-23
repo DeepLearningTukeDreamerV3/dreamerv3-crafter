@@ -11,6 +11,7 @@
       "Bash(scripts/perun.sh submit:*)",
       "Bash(scripts/perun.sh early-ckpt:*)",
       "Bash(scripts/perun.sh cancel:*)",
+      "Bash(scripts/perun.sh eval:*)",
       "Edit(/scripts/perun.sh)",
       "Write(/scripts/perun.sh)",
       "Edit(/.claude/settings.json)",

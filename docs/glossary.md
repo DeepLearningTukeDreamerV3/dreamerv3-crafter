@@ -27,6 +27,12 @@ Plain-language definitions. Add terms when you meet new ones.
   +1 per new achievement, so rewards are rare (**sparse**).
 - **Episode** — one game from start to end.
 - **Return** / **episode score** — sum of rewards in an episode.
+- **Success rate** — share of episodes in which an achievement was
+  unlocked at least once.
+- **Crafter score** — the benchmark number in the Crafter and DreamerV3
+  papers: geometric mean of the 22 success rates (in %),
+  `exp(mean(ln(1 + s_i))) - 1`. Rewards rare achievements more than the
+  plain return does. Computed by `scripts/eval_agent.py`.
 - **Policy** / **actor** — function: state → action.
 - **Value function** / **critic** — predicts the future return from a state.
 - **Model-free RL** — learns policy and value directly from real experience.
@@ -47,6 +53,19 @@ Plain-language definitions. Add terms when you meet new ones.
 - **Prior** — latent state predicted *without* the image, from the previous
   state and action. Used in imagination (`imagine`).
 - **`dyn` / `rep` losses** — KL terms that pull prior and posterior together.
+- **Stop-gradient** (`sg`) — marks a value as a constant during training,
+  so a loss does not change the networks that produced it. Decides which
+  network each DreamerV3 loss trains (`docs/architecture.md`).
+- **Free nats** — a KL below this value (1 nat) is clipped and gives no
+  gradient, so the model does not over-fit the latent state.
+- **λ-return** — target for the critic: a mix of real or imagined rewards
+  over the next steps and the critic's own estimate further ahead
+  (`lam: 0.95`).
+- **Advantage** — how much better an action turned out than the critic
+  expected (return minus value). The actor raises the probability of
+  actions with a positive advantage (REINFORCE-style policy gradient).
+- **Slow critic** — a slowly updated copy of the critic, used as a stable
+  target.
 - **Reward head** / **continuation head** (`rew`, `con`) — predict the reward
   and whether the episode continues.
 - **Imagination** / **imagined rollout** — sequence of prior states produced
