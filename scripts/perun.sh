@@ -76,7 +76,9 @@ cmd="${1:-}"
 case "$cmd" in
   status)
     [ $# -eq 0 ] || die "usage: status"
-    remote "squeue -u \$USER; echo; sacct -u \$USER -S now-7days -X --format=JobID,JobName%20,State,Elapsed,ExitCode"
+    # sacct needs the cluster's accounting database, which is sometimes
+    # down. Then still show squeue and exit 0.
+    remote "squeue -u \$USER; echo; sacct -u \$USER -S now-7days -X --format=JobID,JobName%20,State,Elapsed,ExitCode 2>/dev/null || echo '(sacct unavailable: job history not shown)'"
     ;;
 
   log)

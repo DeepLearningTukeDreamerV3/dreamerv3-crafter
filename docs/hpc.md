@@ -109,7 +109,8 @@ Claude may also run `status`, `log` and `fetch` without asking. It must ask you 
 (`ssh`, `scp`, `rsync`, also inside `bash -c` or a new script). They also
 stop Claude from changing these files without your approval. This
 is a guard rail on the laptop, not a hard security boundary: review
-changes to these files in PRs.
+changes to these files in PRs. After changing the hook, run its tests:
+`python3 -I .claude/hooks/test_block_perun.py`.
 
 ## Build the image (on your laptop)
 
