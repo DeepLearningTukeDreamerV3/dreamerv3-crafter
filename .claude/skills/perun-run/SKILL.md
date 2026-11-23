@@ -7,10 +7,21 @@ description: Register, submit, watch, resume or collect a DreamerV3 training run
 
 Full background: `docs/hpc.md`. Rules: `AGENTS.md`.
 
-The assistant runs on the user's laptop. It cannot run commands on
-PERUN. Give the user the commands to paste, and label each block
-**login node** or **in a job**. Never put `python`, `apptainer`, or a
-large `cp` on the login node.
+The assistant runs on the user's laptop and reaches PERUN **only**
+through `scripts/perun.sh` (table in `docs/hpc.md`). Never call `ssh`,
+`scp` or `rsync` directly: `.claude/settings.json` and
+`.claude/hooks/block_perun.py` block it.
+
+- Run `scripts/perun.sh status`, `log <jobid>` and `fetch <run-id>`
+  yourself whenever you need them (read-only, no prompt).
+- `smoke`, `submit` and `early-ckpt` use cluster time. Run them with
+  `-y` (`scripts/perun.sh -y submit ...`): the user approves the
+  permission prompt. Or ask the user to type `! scripts/perun.sh ...`.
+- Anything the script cannot do: give the user the raw commands to
+  paste (sections below), each block labelled **login node** or
+  **in a job**. Never put `python`, `apptainer`, or a large `cp` on the
+  login node. If a task comes back often, propose a new subcommand in a
+  PR instead.
 
 ## 1. Before submitting (laptop)
 
@@ -22,6 +33,9 @@ large `cp` on the login node.
    clone must have the code the run uses.
 
 ## 2. Submit (login node)
+
+`scripts/perun.sh -y submit <branch> <run-id> <seed> <short-name> [flags...]`
+prints the job ID. Fallback to paste:
 
 ```sh
 cd ~/dreamerv3-crafter && git fetch && git switch <branch> && git pull
@@ -37,18 +51,22 @@ Staged tests come first for a new image or new scripts:
 
 ## 3. Watch (login node)
 
+`scripts/perun.sh status` and `scripts/perun.sh log <jobid> [lines]`.
+Fallback to paste:
+
 ```sh
 squeue -u $USER
 tail -n 30 slurm-dreamer-train-<jobid>.out
 sacct -j <jobid> --format=JobID,State,Elapsed,ExitCode
 ```
 
-`PD` = waiting for a GPU, `R` = running. Ask the user to paste
-errors verbatim, then diagnose before changing anything.
+`PD` = waiting for a GPU, `R` = running. Read errors in the `log`
+output verbatim, then diagnose before changing anything.
 
 ## 4. Resume after the 4-day limit or a crash (login node)
 
-Same run ID, same command; DreamerV3 continues from `<logdir>/ckpt`:
+Same run ID, same command; DreamerV3 continues from `<logdir>/ckpt`.
+`scripts/perun.sh -y submit` with the same arguments, or paste:
 
 ```sh
 RUN_ID=<run-id> sbatch slurm/02_train.sbatch <seed> <short-name> [same flags]
@@ -58,6 +76,8 @@ Add the new job ID to the same row (`job <id1>, <id2>`).
 
 ## 5. Early checkpoint for Task 6 (in a job)
 
+`scripts/perun.sh -y early-ckpt <run-id> <step>`. Fallback:
+
 At ~50k env steps (`step` in `metrics.jsonl`):
 
 ```sh
@@ -66,6 +86,9 @@ srun -p cpu_short -A perun26012624 --qos=perun26012624 -t 00:20:00 cp -r $L/ckpt
 ```
 
 ## 6. Collect results (laptop)
+
+`scripts/perun.sh fetch <run-id>` does the copy and the 5 MB check.
+Fallback:
 
 Only small files come back. Never checkpoints, replay or `.sif`.
 

@@ -46,11 +46,13 @@ setup.sh             one-time setup for new members (./setup.sh)
 AGENTS.md            rules for AI assistants
 CLAUDE.md            imports AGENTS.md for Claude Code
 .claude/skills/      Claude Code skills (perun-run: submit and collect PERUN runs)
+.claude/settings.json, .claude/hooks/   what Claude may run; blocks raw ssh to PERUN
 ROADMAP.md           8-week plan with checkboxes
 CONTRIBUTING.md      branches, PRs, experiment naming
 EXPERIMENTS.md       every run, including failed ones
 docs/                learning path, glossary, git workflow, architecture, HPC, report
-scripts/             setup check, env snapshot, random agent, issue list
+scripts/             setup check, env snapshot, random agent, issue list,
+                     perun.sh (fixed PERUN commands, run from the laptop)
 analysis/            plotting scripts and notebooks
 runs/                small logs of finished runs (metrics, scores, config)
 slurm/               SLURM job scripts for the PERUN cluster
