@@ -17,8 +17,9 @@
 #   scripts/perun.sh submit <branch> <run-id> <seed> <name> [flags...]
 #   scripts/perun.sh early-ckpt <run-id> <step>   # copy ckpt, in a job
 #   scripts/perun.sh cancel <jobid>               # stop a job (scancel)
+#   scripts/perun.sh eval <branch> <eval-id> <run-id> <ckpt|random> [episodes] [seed]
 #
-# smoke, submit, early-ckpt and cancel change the cluster: they ask y/N first.
+# smoke, submit, early-ckpt, cancel and eval change the cluster: they ask y/N first.
 # Without a terminal (run from Claude Code) they refuse unless -y comes
 # first, e.g. `scripts/perun.sh -y smoke main`.
 set -euo pipefail
@@ -97,7 +98,9 @@ case "$cmd" in
     mkdir -p "$dest"
     # Find the logdir on the cluster, then copy only the small files.
     L="$(remote "$(logdir_of "$1"); echo \$L")"
-    rsync -av "$HOST:$L/metrics.jsonl" "$HOST:$L/scores.jsonl" "$HOST:$L/config.yaml" "$dest/"
+    # Training runs have metrics/scores/config, evaluations eval/summary.
+    rsync -av --ignore-missing-args "$HOST:$L/metrics.jsonl" "$HOST:$L/scores.jsonl" \
+      "$HOST:$L/config.yaml" "$HOST:$L/eval.jsonl" "$HOST:$L/summary.json" "$dest/"
     rsync -av "$HOST:$REPO/runs/$1/env.txt" "$dest/" || echo "no env.txt for $1"
     # The repo CI rejects files over 5 MB.
     big="$(find "$dest" -type f -size +5M)"
@@ -147,8 +150,25 @@ case "$cmd" in
     remote "$c"
     ;;
 
+  eval)
+    # Task 6: evaluate a checkpoint folder of <run-id> (ckpt,
+    # ckpt_early_<step>) or a random agent, in a GPU job (slurm/03_eval.sbatch).
+    [ $# -ge 4 ] && [ $# -le 6 ] || die "usage: eval <branch> <eval-id> <run-id> <ckpt|random> [episodes] [seed]"
+    check branch "$1" "$NAME_RE"
+    check eval-id "$2" "$NAME_RE"
+    check run-id "$3" "$NAME_RE"
+    check ckpt "$4" "$NAME_RE"
+    episodes="${5:-50}" seed="${6:-100}"
+    check episodes "$episodes" "$NUM_RE"
+    check seed "$seed" "$NUM_RE"
+    c="$(pull "$1") && sbatch slurm/03_eval.sbatch $2 $3 $4 $episodes $seed"
+    confirm "$c"
+    remote "$c"
+    echo "Add the job ID above to the eval's row in EXPERIMENTS.md."
+    ;;
+
   *)
-    sed -n '12,19p' "$0" >&2   # the usage lines at the top of this file
+    sed -n '12,20p' "$0" >&2   # the usage lines at the top of this file
     exit 1
     ;;
 esac

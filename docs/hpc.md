@@ -88,13 +88,14 @@ checkpoint copy runs in a job through `srun`.
 |---|---|
 | `scripts/perun.sh status` | `squeue` + `sacct` of your jobs (last 7 days) |
 | `scripts/perun.sh log <jobid> [lines]` | end of a job's `slurm-*-<jobid>.out` |
-| `scripts/perun.sh fetch <run-id>` | small logs into `runs/<run-id>/`, warns over 5 MB |
+| `scripts/perun.sh fetch <run-id>` | small logs (or eval results) into `runs/<run-id>/`, warns over 5 MB |
 | `scripts/perun.sh smoke <branch>` | pull the branch on the cluster, submit the smoke test |
 | `scripts/perun.sh submit <branch> <run-id> <seed> <name> [flags]` | pull, then `sbatch slurm/02_train.sbatch` |
 | `scripts/perun.sh early-ckpt <run-id> <step>` | copy `ckpt` to `ckpt_early_<step>`, in a job |
 | `scripts/perun.sh cancel <jobid>` | `scancel` a job; a run resumes from its last checkpoint (saved every 15 min) |
+| `scripts/perun.sh eval <branch> <eval-id> <run-id> <ckpt\|random> [episodes] [seed]` | pull, then `sbatch slurm/03_eval.sbatch` (Task 6, see below) |
 
-`smoke`, `submit`, `early-ckpt` and `cancel` change the cluster, so they ask y/N.
+`smoke`, `submit`, `early-ckpt`, `cancel` and `eval` change the cluster, so they ask y/N.
 Without a terminal, put `-y` first: `scripts/perun.sh -y smoke main`.
 The cluster clone is only updated with `git pull --ff-only`. Arguments
 with spaces or shell characters are refused. The script gives up after 10 s
@@ -105,7 +106,7 @@ cannot ask for the passphrase.
 **With Claude Code.** In Claude Code, type `! scripts/perun.sh status`.
 The output then shows up in the chat, so you do not copy it by hand.
 Claude may also run `status`, `log` and `fetch` without asking. It must ask you before
-`smoke`, `submit`, `early-ckpt` and `cancel`. `.claude/settings.json` and the hook
+`smoke`, `submit`, `early-ckpt`, `cancel` and `eval`. `.claude/settings.json` and the hook
 `.claude/hooks/block_perun.py` block every other way to reach PERUN
 (`ssh`, `scp`, `rsync`, also inside `bash -c` or a new script). They also
 stop Claude from changing these files without your approval. This
@@ -184,3 +185,19 @@ srun -p cpu_short -A perun26012624 --qos=perun26012624 -t 00:20:00 cp -r \
   /mnt/scratch/$USER/dreamer/logdir/<run-id>/ckpt \
   /mnt/scratch/$USER/dreamer/logdir/<run-id>/ckpt_early_<step>
 ```
+
+## Evaluation (Task 6)
+
+`slurm/03_eval.sbatch` runs `scripts/eval_agent.py` in a GPU job: N
+episodes on the same Crafter worlds (fixed seed) for every agent, with
+return, length and unlocked achievements per episode. Login node:
+
+```sh
+sbatch slurm/03_eval.sbatch <eval-id> <run-id> ckpt              # final checkpoint
+sbatch slurm/03_eval.sbatch <eval-id> <run-id> ckpt_early_<step> # early checkpoint
+sbatch slurm/03_eval.sbatch <eval-id> <run-id> random            # random agent
+```
+
+Optional 4th and 5th arguments: episodes (default 50), world seed
+(default 100). Results go to `<logdir>/<eval-id>/eval.jsonl` and
+`summary.json` (mean return, success rate per achievement, Crafter score).
