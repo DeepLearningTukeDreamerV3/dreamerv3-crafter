@@ -183,3 +183,19 @@ srun -p cpu_short -A perun26012624 --qos=perun26012624 -t 00:20:00 cp -r \
   /mnt/scratch/$USER/dreamer/logdir/<run-id>/ckpt \
   /mnt/scratch/$USER/dreamer/logdir/<run-id>/ckpt_early_<step>
 ```
+
+## Evaluation (Task 6)
+
+`slurm/03_eval.sbatch` runs `scripts/eval_agent.py` in a GPU job: N
+episodes on the same Crafter worlds (fixed seed) for every agent, with
+return, length and unlocked achievements per episode. Login node:
+
+```sh
+sbatch slurm/03_eval.sbatch <eval-id> <run-id> ckpt              # final checkpoint
+sbatch slurm/03_eval.sbatch <eval-id> <run-id> ckpt_early_<step> # early checkpoint
+sbatch slurm/03_eval.sbatch <eval-id> <run-id> random            # random agent
+```
+
+Optional 4th and 5th arguments: episodes (default 50), world seed
+(default 100). Results go to `<logdir>/<eval-id>/eval.jsonl` and
+`summary.json` (mean return, success rate per achievement, Crafter score).

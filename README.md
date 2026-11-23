@@ -52,7 +52,8 @@ CONTRIBUTING.md      branches, PRs, experiment naming
 EXPERIMENTS.md       every run, including failed ones
 docs/                learning path, glossary, git workflow, architecture, HPC, report
 scripts/             setup check, env snapshot, random agent, issue list,
-                     perun.sh (fixed PERUN commands, run from the laptop)
+                     perun.sh (fixed PERUN commands, run from the laptop),
+                     eval_agent.py (checkpoint or random agent on fixed worlds, Task 6)
 analysis/            plotting scripts and notebooks
 runs/                small logs of finished runs (metrics, scores, config)
 slurm/               SLURM job scripts for the PERUN cluster

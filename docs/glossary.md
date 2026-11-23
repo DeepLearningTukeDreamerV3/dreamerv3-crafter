@@ -27,6 +27,12 @@ Plain-language definitions. Add terms when you meet new ones.
   +1 per new achievement, so rewards are rare (**sparse**).
 - **Episode** — one game from start to end.
 - **Return** / **episode score** — sum of rewards in an episode.
+- **Success rate** — share of episodes in which an achievement was
+  unlocked at least once.
+- **Crafter score** — the benchmark number in the Crafter and DreamerV3
+  papers: geometric mean of the 22 success rates (in %),
+  `exp(mean(ln(1 + s_i))) - 1`. Rewards rare achievements more than the
+  plain return does. Computed by `scripts/eval_agent.py`.
 - **Policy** / **actor** — function: state → action.
 - **Value function** / **critic** — predicts the future return from a state.
 - **Model-free RL** — learns policy and value directly from real experience.

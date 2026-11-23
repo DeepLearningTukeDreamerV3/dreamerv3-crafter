@@ -112,9 +112,11 @@ committed.
 
 ## Week 6 — M4: baselines and sensitivity launch
 
-- [ ] Task 6: random agent (`scripts/random_agent.py`) and early checkpoint
-      (`--script eval_only --run.from_checkpoint ...`), same seeds and
-      episode count as the trained agent.
+- [ ] Task 6: random agent and early checkpoint, same seeds and
+      episode count as the trained agent. Use `scripts/eval_agent.py`
+      (`slurm/03_eval.sbatch` on PERUN): it fixes the Crafter world seed,
+      which upstream `--script eval_only` cannot, and records the 22
+      achievements for the Crafter score.
 - [ ] Task 7: launch one sensitivity run. Suggested: `--agent.imag_length 5`
       vs default 15. Change nothing else.
 - [ ] Fill the evaluation table (assignment A.7) except the sensitivity row.
