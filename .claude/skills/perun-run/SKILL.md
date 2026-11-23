@@ -14,7 +14,7 @@ through `scripts/perun.sh` (table in `docs/hpc.md`). Never call `ssh`,
 
 - Run `scripts/perun.sh status`, `log <jobid>` and `fetch <run-id>`
   yourself whenever you need them (read-only, no prompt).
-- `smoke`, `submit` and `early-ckpt` use cluster time. Run them with
+- `smoke`, `submit`, `early-ckpt` and `cancel` change the cluster. Run them with
   `-y` (`scripts/perun.sh -y submit ...`): the user approves the
   permission prompt. Or ask the user to type `! scripts/perun.sh ...`.
 - Anything the script cannot do: give the user the raw commands to
@@ -73,6 +73,11 @@ RUN_ID=<run-id> sbatch slurm/02_train.sbatch <seed> <short-name> [same flags]
 ```
 
 Add the new job ID to the same row (`job <id1>, <id2>`).
+
+To stop a run early (step budget reached): wait for a `Saved checkpoint`
+line in `log` after the target step, then
+`scripts/perun.sh -y cancel <jobid>`. Note the last checkpoint step in
+the row.
 
 ## 5. Early checkpoint for Task 6 (in a job)
 

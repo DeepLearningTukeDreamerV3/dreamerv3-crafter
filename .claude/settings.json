@@ -10,6 +10,7 @@
       "Bash(scripts/perun.sh smoke:*)",
       "Bash(scripts/perun.sh submit:*)",
       "Bash(scripts/perun.sh early-ckpt:*)",
+      "Bash(scripts/perun.sh cancel:*)",
       "Edit(/scripts/perun.sh)",
       "Write(/scripts/perun.sh)",
       "Edit(/.claude/settings.json)",

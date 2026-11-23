@@ -16,8 +16,9 @@
 #   scripts/perun.sh smoke <branch>               # submit the smoke test
 #   scripts/perun.sh submit <branch> <run-id> <seed> <name> [flags...]
 #   scripts/perun.sh early-ckpt <run-id> <step>   # copy ckpt, in a job
+#   scripts/perun.sh cancel <jobid>               # stop a job (scancel)
 #
-# smoke, submit and early-ckpt use cluster time: they ask y/N first.
+# smoke, submit, early-ckpt and cancel change the cluster: they ask y/N first.
 # Without a terminal (run from Claude Code) they refuse unless -y comes
 # first, e.g. `scripts/perun.sh -y smoke main`.
 set -euo pipefail
@@ -136,8 +137,18 @@ case "$cmd" in
     remote "$c"
     ;;
 
+  cancel)
+    # Stops a job. A training run keeps its last checkpoint (saved every
+    # 15 min) and resumes from it when resubmitted with the same run ID.
+    [ $# -eq 1 ] || die "usage: cancel <jobid>"
+    check jobid "$1" "$NUM_RE"
+    c="scancel $1"
+    confirm "$c"
+    remote "$c"
+    ;;
+
   *)
-    sed -n '12,18p' "$0" >&2   # the usage lines at the top of this file
+    sed -n '12,19p' "$0" >&2   # the usage lines at the top of this file
     exit 1
     ;;
 esac
