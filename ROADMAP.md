@@ -91,9 +91,14 @@ committed.
 
 - [ ] Baseline finishes (1.1M env steps). If the smoke test shows it
       cannot finish in time, stop at a fixed step count and say so.
-- [ ] Task 3: map each loss in `metrics.jsonl` to its component
+- [x] Task 3: map each loss in `metrics.jsonl` to its component
       (`train/loss/image`, `rew`, `con`, `dyn`, `rep`, `policy`, `value`, `repval`).
+      Done in `docs/architecture.md`, section "Losses".
 - [ ] Plot: episode return vs env steps; world-model losses vs train steps.
+      Script: `analysis/plot_curves.py <run-id>`. It uses env steps on the
+      x axis for both (one train update every 2 env steps:
+      `train_ratio` 512 / batch 16×64). Commit the figures with the
+      final baseline logs.
 - [ ] Compare the return curve with the published reference in `upstream/scores/`
       (same config as the paper, so scores should be close; explain any gap).
 
