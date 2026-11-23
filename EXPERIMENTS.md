@@ -8,3 +8,4 @@ Status: `planned`, `running`, `done`, `failed`, `killed`.
 | Run ID | Date | Commit | Configs + flags | Seed | Hardware / job | Wall-clock | Status | Notes |
 |---|---|---|---|---|---|---|---|---|
 | 20261001-debug-cpu | 2026-10-01 | e3f0224 | `crafter debug`, `--jax.platform cpu` | 0 | local CPU, Docker | ~3 h | done | First local smoke run, `logdir/20261001T153148` |
+| 20261109-smoke-j148884 | 2026-11-09 | 4206577 | `crafter debug`, `--jax.platform cuda`, `--run.duration 1200` | 0 | PERUN `gpu_short`, H200, Apptainer, job 148884 | 30 min (limit) | timeout | Stage 3 smoke test, first run with Apptainer after the user-lookup fix. Apptainer, GPU, training and checkpoints all worked (~200 env steps/s). Killed by the 30 min time limit: `run.duration` is not read by upstream `e3f0224`, so the run never stopped. Fixed: smoke now uses `--run.steps 100000` |

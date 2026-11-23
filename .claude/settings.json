@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(scripts/perun.sh status)",
+      "Bash(scripts/perun.sh log:*)",
+      "Bash(scripts/perun.sh fetch:*)"
+    ],
+    "ask": [
+      "Bash(scripts/perun.sh -y:*)",
+      "Bash(scripts/perun.sh smoke:*)",
+      "Bash(scripts/perun.sh submit:*)",
+      "Bash(scripts/perun.sh early-ckpt:*)",
+      "Edit(/scripts/perun.sh)",
+      "Write(/scripts/perun.sh)",
+      "Edit(/.claude/settings.json)",
+      "Write(/.claude/settings.json)",
+      "Edit(/.claude/hooks/**)",
+      "Write(/.claude/hooks/**)"
+    ],
+    "deny": [
+      "Bash(ssh:*)",
+      "Bash(scp:*)",
+      "Bash(sftp:*)",
+      "Bash(rsync:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/.claude/hooks/block_perun.py\""
+          }
+        ]
+      }
+    ]
+  }
+}

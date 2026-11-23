@@ -78,6 +78,40 @@ Host perun
 Never share or upload the private key (`~/.ssh/perun`). Only the `.pub`
 file goes to the portal.
 
+## From the laptop: `scripts/perun.sh`
+
+After the SSH shortcut works, most cluster tasks are one command on the
+laptop. The script sends only commands allowed on the login node. The
+checkpoint copy runs in a job through `srun`.
+
+| Command | Does |
+|---|---|
+| `scripts/perun.sh status` | `squeue` + `sacct` of your jobs (last 7 days) |
+| `scripts/perun.sh log <jobid> [lines]` | end of a job's `slurm-*-<jobid>.out` |
+| `scripts/perun.sh fetch <run-id>` | small logs into `runs/<run-id>/`, warns over 5 MB |
+| `scripts/perun.sh smoke <branch>` | pull the branch on the cluster, submit the smoke test |
+| `scripts/perun.sh submit <branch> <run-id> <seed> <name> [flags]` | pull, then `sbatch slurm/02_train.sbatch` |
+| `scripts/perun.sh early-ckpt <run-id> <step>` | copy `ckpt` to `ckpt_early_<step>`, in a job |
+
+`smoke`, `submit` and `early-ckpt` use cluster time, so they ask y/N.
+Without a terminal, put `-y` first: `scripts/perun.sh -y smoke main`.
+The cluster clone is only updated with `git pull --ff-only`. Arguments
+with spaces or shell characters are refused. The script gives up after 10 s
+if PERUN cannot be reached (VPN off). If your key has a passphrase, run
+`ssh-add ~/.ssh/perun` once per session: without a terminal the script
+cannot ask for the passphrase.
+
+**With Claude Code.** In Claude Code, type `! scripts/perun.sh status`.
+The output then shows up in the chat, so you do not copy it by hand.
+Claude may also run `status`, `log` and `fetch` without asking. It must ask you before
+`smoke`, `submit` and `early-ckpt`. `.claude/settings.json` and the hook
+`.claude/hooks/block_perun.py` block every other way to reach PERUN
+(`ssh`, `scp`, `rsync`, also inside `bash -c` or a new script). They also
+stop Claude from changing these files without your approval. This
+is a guard rail on the laptop, not a hard security boundary: review
+changes to these files in PRs. After changing the hook, run its tests:
+`python3 -I .claude/hooks/test_block_perun.py`.
+
 ## Build the image (on your laptop)
 
 The laptop has Docker but no Apptainer, so we run Apptainer inside
@@ -120,35 +154,12 @@ Do not skip stages. Production GPU time must not find basic errors.
    ```
    Checks GPU visibility, JAX device, model init, a few train steps, logs.
 3. **Smoke test** — `sbatch slurm/01_smoke.sbatch`. Debug config on
-   GPU, ~20 min. Check that a checkpoint is written. Note steps per minute.
+   GPU, 100k steps, ~11 min. Check that a checkpoint is written. Note steps per minute.
 4. **Production** — `sbatch slurm/02_train.sbatch <seed> [run-name] [extra flags]`.
 
 Register every job in `EXPERIMENTS.md` with its job ID. Watch a job
 from the login node with `squeue -u $USER` and
 `tail -f slurm-dreamer-train-<jobid>.out`.
-
-## Without Apptainer (temporary workaround)
-
-In October 2026 every `apptainer` command failed on the compute nodes
-with `FATAL: Couldn't determine user account information: user: unknown
-userid ...`. Compute nodes could not look up the user name of new
-accounts. Until the admins fix it, jobs can run without the container:
-
-1. Build the environment once, in a job. It downloads Python 3.11 and
-   the exact package versions of our image
-   (`slurm/requirements-native.txt`) into `~/dreamer-venv`:
-   ```sh
-   srun -p cpu_short -A perun26012624 --qos=perun26012624 -c 4 --mem=8G -t 01:00:00 bash slurm/setup_native.sh   # login node
-   ```
-   It ends with `OK: environment ready`.
-2. Put `RUNTIME=native` in front of the usual commands:
-   ```sh
-   RUNTIME=native bash slurm/00_interactive.sh        # GPU node
-   RUNTIME=native sbatch slurm/01_smoke.sbatch        # login node
-   ```
-
-Note `native` in the run's `EXPERIMENTS.md` row. Once Apptainer works,
-use the image again and delete `~/dreamer-venv`.
 
 ## Long runs
 
