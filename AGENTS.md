@@ -28,9 +28,18 @@ any code we submit (assignment §6). So:
 - Shell with everything installed:
   `docker compose --profile cpu run --rm train-cpu bash`
 - Local check: `docker compose --profile cpu run --rm train-cpu python scripts/check_local.py`
-- No HPC access for now. Do not plan steps that need a cluster or the
-  supervisor. `slurm/` and `docs/hpc.md` are for later.
-- GPU baseline: use the exact command in `ROADMAP.md` week 2. Do
+- Real training runs on the PERUN cluster (TUKE) with SLURM and
+  Apptainer: `slurm/` and `docs/hpc.md`. Do not plan steps that need
+  the supervisor.
+- **Never work on the PERUN login node** (supervisor's rule). On the
+  login node only: `ssh`, `git`, editing files, `sbatch`, `srun`,
+  `squeue`, `scancel`, `sacct`, `sinfo`, reading logs (`tail`, `less`),
+  and `rsync`/`scp` uploads. Everything else runs inside a SLURM job
+  (`srun` or `sbatch`): `python`, any `apptainer exec` or
+  `apptainer build`, training, tests, analysis, and copying large files
+  (checkpoints, replay). When you give a cluster command, say whether it
+  runs on the login node or in a job.
+- Local GPU runs (laptop): use the exact command in `ROADMAP.md` week 2. Do
   not use `docker compose up train` for real runs: it forces
   `--run.train_ratio 32` (the `crafter` config uses 512) and a new
   `{timestamp}` logdir on every start, so runs cannot resume.

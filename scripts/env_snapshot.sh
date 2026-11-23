@@ -5,13 +5,20 @@
 set -uo pipefail
 
 RUN_ID="${1:?run id required}"
-ROOT="$(git -C "$(dirname "$0")" rev-parse --show-toplevel)"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/runs/$RUN_ID"
 mkdir -p "$OUT"
 
 PY=python
-if [ -n "${SIF:-}" ] && [ -f "${SIF:-}" ]; then
+GIT=git
+if [ "${RUNTIME:-}" = native ]; then
+  PY="$VENV/bin/python"
+elif [ -n "${SIF:-}" ] && [ -f "${SIF:-}" ]; then
   PY="apptainer exec $SIF python"
+  # Cluster compute nodes have no git; the image has it.
+  if ! command -v git >/dev/null; then
+    GIT="apptainer exec -B $ROOT $SIF git"
+  fi
 fi
 
 {
@@ -21,9 +28,20 @@ fi
   echo "slurm_job: ${SLURM_JOB_ID:-none}"
   echo
   echo "## Git"
-  git -C "$ROOT" rev-parse HEAD
-  git -C "$ROOT" status --short
-  git -C "$ROOT" diff --stat
+  if [ "${RUNTIME:-}" = native ] && ! command -v git >/dev/null; then
+    # No git on the node: read the commit from .git directly.
+    HEAD_REF="$(cat "$ROOT/.git/HEAD")"
+    echo "$HEAD_REF"
+    case "$HEAD_REF" in
+      ref:*) cat "$ROOT/.git/${HEAD_REF#ref: }" 2>/dev/null \
+               || grep " ${HEAD_REF#ref: }\$" "$ROOT/.git/packed-refs" ;;
+    esac
+    echo "(git not available: no status or diff)"
+  else
+    $GIT -C "$ROOT" rev-parse HEAD
+    $GIT -C "$ROOT" status --short
+    $GIT -C "$ROOT" diff --stat
+  fi
   echo
   echo "## Python / JAX"
   $PY --version

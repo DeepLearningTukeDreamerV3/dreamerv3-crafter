@@ -33,7 +33,7 @@ Then, when you need them:
 | Docker or GPU problem | [`DOCKER.md`](DOCKER.md) |
 | Reading the DreamerV3 code (week 3) | [`docs/architecture.md`](docs/architecture.md) |
 | Original DreamerV3 README | [`upstream/README.md`](upstream/README.md) |
-| Cluster (not used yet) | [`docs/hpc.md`](docs/hpc.md) |
+| Cluster (PERUN, SLURM) | [`docs/hpc.md`](docs/hpc.md) |
 
 The assignment is not in this public repo. Ask the team for the PDF; keep
 a local copy at `docs/assignment.{md,pdf}` (git-ignored).
@@ -45,6 +45,7 @@ README.md            you are here
 setup.sh             one-time setup for new members (./setup.sh)
 AGENTS.md            rules for AI assistants
 CLAUDE.md            imports AGENTS.md for Claude Code
+.claude/skills/      Claude Code skills (perun-run: submit and collect PERUN runs)
 ROADMAP.md           8-week plan with checkboxes
 CONTRIBUTING.md      branches, PRs, experiment naming
 EXPERIMENTS.md       every run, including failed ones
@@ -52,7 +53,7 @@ docs/                learning path, glossary, git workflow, architecture, HPC, r
 scripts/             setup check, env snapshot, random agent, issue list
 analysis/            plotting scripts and notebooks
 runs/                small logs of finished runs (metrics, scores, config)
-slurm/               SLURM job scripts (unused until we get HPC access)
+slurm/               SLURM job scripts for the PERUN cluster
 Dockerfile, compose.yaml, DOCKER.md   Docker setup
 .env.example         defaults for compose; setup.sh copies it to .env
 .devcontainer/       dev container for VS Code, Codespaces, PyCharm Pro
@@ -127,8 +128,9 @@ refresh. Needs `gh` with the `project` scope (`gh auth refresh -h github.com -s 
 
 ## HPC
 
-No cluster access for now; all training is local. Cluster instructions,
-for later: [`docs/hpc.md`](docs/hpc.md).
+Real training runs on the PERUN cluster (TUKE) with SLURM and Apptainer:
+[`docs/hpc.md`](docs/hpc.md). Never work on the login node: everything
+except `git`, editing and job commands runs in a SLURM job.
 
 ## Upstream
 

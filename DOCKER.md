@@ -64,29 +64,19 @@ rebuild. Changes to `upstream/requirements.txt` or the `Dockerfile` need
 
 ## HPC (Slurm + Apptainer)
 
-Clusters usually run Apptainer instead of Docker. Convert the same image:
+The PERUN cluster runs Apptainer instead of Docker. Convert the same image
+with Apptainer inside Docker (no Apptainer install needed on the laptop):
 
 ```sh
-# Option A: through a registry.
-docker tag dreamerv3:latest <registry>/dreamerv3:latest
-docker push <registry>/dreamerv3:latest
-apptainer build dreamerv3.sif docker://<registry>/dreamerv3:latest
-
-# Option B: through a tar file.
+mkdir -p ~/hpc-build && cd ~/hpc-build
 docker save dreamerv3:latest -o dreamerv3.tar
-apptainer build dreamerv3.sif docker-archive://dreamerv3.tar
+docker run --rm --privileged -v ~/hpc-build:/work --entrypoint apptainer \
+  ghcr.io/apptainer/apptainer:1.3.6 \
+  build /work/dreamerv3.sif docker-archive:///work/dreamerv3.tar
 ```
 
-Run inside a Slurm job:
-
-```sh
-apptainer exec --nv -B $SCRATCH/logdir:/logdir dreamerv3.sif \
-  sh /app/upstream/entrypoint.sh python /app/upstream/dreamerv3/main.py \
-  --logdir /logdir/{timestamp} --configs crafter
-```
-
-Partition names, modules, and scratch paths depend on the cluster. Check the
-cluster documentation.
+Upload, run and the login-node rule: [`docs/hpc.md`](docs/hpc.md). The
+SLURM scripts call `apptainer exec` for you (`slurm/common.sh`).
 
 ## Known quirks of the upstream files
 

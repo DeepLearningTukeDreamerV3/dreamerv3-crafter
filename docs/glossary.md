@@ -64,4 +64,14 @@ Plain-language definitions. Add terms when you meet new ones.
 - **Partition** — group of nodes (e.g. GPU nodes).
 - **Apptainer** (formerly Singularity) — container runtime on clusters.
   Runs `.sif` images converted from our Docker image.
-- **Scratch** — fast, large, temporary cluster storage for logdirs.
+- **Scratch** — fast, large, temporary cluster storage for logdirs. On
+  PERUN: `/mnt/scratch/$USER`, deleted 60 days after last access.
+- **Login node** — the machine you `ssh` into. Shared by all users: only
+  edit, `git` and submit jobs there, never compute.
+- **Compute node** — machine with CPUs/GPUs where SLURM runs your job.
+- **`.sif`** — single-file Apptainer image, built from our Docker image.
+- **Virtual environment** (venv) — a folder with its own Python and
+  packages, separate from the system's. Our temporary non-container
+  setup on PERUN uses `~/dreamer-venv`.
+- **uv** — fast tool that installs Python versions and packages. Used by
+  `slurm/setup_native.sh`.
