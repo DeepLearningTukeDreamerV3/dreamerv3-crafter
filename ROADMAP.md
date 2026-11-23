@@ -91,6 +91,11 @@ committed.
 
 - [ ] Baseline finishes (1.1M env steps). If the smoke test shows it
       cannot finish in time, stop at a fixed step count and say so.
+      Decision 2026-11-23: stop `20261123-baseline-s0` at ~200k env
+      steps (~3 h on one H200; 1.1M would take ~19 h). Task 1 asks for a
+      *short* reproduction run without code changes, and the score
+      already rises in the first 15k steps. The sensitivity run uses the
+      same 200k budget. Resume later with the same run ID if needed.
 - [ ] Task 3: map each loss in `metrics.jsonl` to its component
       (`train/loss/image`, `rew`, `con`, `dyn`, `rep`, `policy`, `value`, `repval`).
 - [ ] Plot: episode return vs env steps; world-model losses vs train steps.
