@@ -99,8 +99,11 @@ committed.
 - [ ] Task 3: map each loss in `metrics.jsonl` to its component
       (`train/loss/image`, `rew`, `con`, `dyn`, `rep`, `policy`, `value`, `repval`).
 - [ ] Plot: episode return vs env steps; world-model losses vs train steps.
-- [ ] Compare the return curve with the published reference in `upstream/scores/`
+- [ ] Compare the return curve with the published reference
       (same config as the paper, so scores should be close; explain any gap).
+      `upstream/scores/` has no Crafter file: use the DreamerV3 paper.
+      Our run does not log achievements (`env.crafter.logs` false), so
+      the paper's Crafter score comes from the Task 6 evaluation runs.
 
 **Done when:** baseline reproduced, curves committed, M1 approved.
 
