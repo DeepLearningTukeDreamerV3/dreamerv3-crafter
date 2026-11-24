@@ -18,8 +18,9 @@
 #   scripts/perun.sh early-ckpt <run-id> <step>   # copy ckpt, in a job
 #   scripts/perun.sh cancel <jobid>               # stop a job (scancel)
 #   scripts/perun.sh eval <branch> <eval-id> <run-id> <ckpt|random> [episodes] [seed]
+#   scripts/perun.sh openloop <branch> <openloop-id> <run-id> [ckpt] [episodes]
 #
-# smoke, submit, early-ckpt, cancel and eval change the cluster: they ask y/N first.
+# smoke, submit, early-ckpt, cancel, eval and openloop change the cluster: they ask y/N first.
 # Without a terminal (run from Claude Code) they refuse unless -y comes
 # first, e.g. `scripts/perun.sh -y smoke main`.
 set -euo pipefail
@@ -66,8 +67,13 @@ logdir_of() {
 }
 
 # Update the cluster clone to a branch. --ff-only: never rewrite history.
+# Each job writes runs/<id>/env.txt into the clone (env_snapshot.sh); once
+# we commit that file, git refuses to switch to a branch that has it.
+# So first remove an untracked env.txt, but only if it is byte-identical
+# to the committed copy on the target branch: nothing is lost. A file
+# that differs is kept, and the switch then stops with git's error.
 pull() {
-  echo "cd ~/$REPO && git fetch --quiet && git switch --quiet $1 && git pull --quiet --ff-only && git log --oneline -1"
+  echo "cd ~/$REPO && git fetch --quiet && for f in \$(git ls-files --others --exclude-standard 'runs/*/env.txt'); do git show origin/$1:\$f 2>/dev/null | cmp -s - \$f && rm \$f && echo \"removed \$f (same as committed)\" || true; done && git switch --quiet $1 && git pull --quiet --ff-only && git log --oneline -1"
 }
 
 YES=0
@@ -98,9 +104,11 @@ case "$cmd" in
     mkdir -p "$dest"
     # Find the logdir on the cluster, then copy only the small files.
     L="$(remote "$(logdir_of "$1"); echo \$L")"
-    # Training runs have metrics/scores/config, evaluations eval/summary.
+    # Training runs have metrics/scores/config, evaluations eval/summary,
+    # open-loop runs openloop.json and media/ (a few images).
     rsync -av --ignore-missing-args "$HOST:$L/metrics.jsonl" "$HOST:$L/scores.jsonl" \
-      "$HOST:$L/config.yaml" "$HOST:$L/eval.jsonl" "$HOST:$L/summary.json" "$dest/"
+      "$HOST:$L/config.yaml" "$HOST:$L/eval.jsonl" "$HOST:$L/summary.json" \
+      "$HOST:$L/openloop.json" "$HOST:$L/media" "$dest/"
     rsync -av "$HOST:$REPO/runs/$1/env.txt" "$dest/" || echo "no env.txt for $1"
     # The repo CI rejects files over 5 MB.
     big="$(find "$dest" -type f -size +5M)"
@@ -167,8 +175,24 @@ case "$cmd" in
     echo "Add the job ID above to the eval's row in EXPERIMENTS.md."
     ;;
 
+  openloop)
+    # Task 4: open-loop predictions of a checkpoint folder of <run-id>,
+    # in a GPU job (slurm/04_openloop.sbatch).
+    [ $# -ge 3 ] && [ $# -le 5 ] || die "usage: openloop <branch> <openloop-id> <run-id> [ckpt] [episodes]"
+    check branch "$1" "$NAME_RE"
+    check openloop-id "$2" "$NAME_RE"
+    check run-id "$3" "$NAME_RE"
+    ckpt="${4:-ckpt}" episodes="${5:-10}"
+    check ckpt "$ckpt" "$NAME_RE"
+    check episodes "$episodes" "$NUM_RE"
+    c="$(pull "$1") && sbatch slurm/04_openloop.sbatch $2 $3 $ckpt $episodes"
+    confirm "$c"
+    remote "$c"
+    echo "Add the job ID above to the run's row in EXPERIMENTS.md."
+    ;;
+
   *)
-    sed -n '12,20p' "$0" >&2   # the usage lines at the top of this file
+    sed -n '12,21p' "$0" >&2   # the usage lines at the top of this file
     exit 1
     ;;
 esac

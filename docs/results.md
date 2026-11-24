@@ -15,8 +15,8 @@ achievement, ±0.1 per health point; mean ± standard deviation over the
 | System stage | Env steps | Episode return | Crafter score | Prediction evidence | Comments | Run ID |
 |---|---|---|---|---|---|---|
 | Random agent | 0 | 1.52 ± 1.08 | 1.4 % | none (no model) | Reference lower baseline | `20261124-eval-random` |
-| Early DreamerV3 checkpoint | ~40–52k | 2.64 ± 1.37 | 2.7 % | Task 4 (todo) | World model still immature | `20261124-eval-early-s0` |
-| Trained DreamerV3 | ~213k | 4.44 ± 1.61 | 4.3 % | Task 4 (todo) | Main result, stopped at 213,620 steps (ROADMAP week 4) | `20261124-eval-final-s0` |
+| Early DreamerV3 checkpoint | ~40–52k | 2.64 ± 1.37 | 2.7 % | not measured (Task 4 used the final checkpoint) | World model still immature | `20261124-eval-early-s0` |
+| Trained DreamerV3 | ~213k | 4.44 ± 1.61 | 4.3 % | open-loop image MSE 0.011 at 1 step, 0.032 at 32; below copy-last-frame from step 7; reward 2× too high (`docs/failures.md`) | Main result, stopped at 213,620 steps (ROADMAP week 4) | `20261124-eval-final-s0` |
 | Sensitivity variant | 213,620 | todo | todo | todo | `--agent.imag_length 5` | `20261124-imag5-s0` |
 
 The order random < early < trained holds for both return and score.

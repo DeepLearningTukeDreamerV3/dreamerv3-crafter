@@ -77,12 +77,13 @@ committed.
 ## Week 3 — M2: understand the architecture
 
 - [ ] Learning: DreamerV3 paper (`docs/learning-path.md` step 4).
-- [ ] Task 2: trace one batch through `upstream/dreamerv3/agent.py` and `upstream/dreamerv3/rssm.py`.
+- [x] Task 2: trace one batch through `upstream/dreamerv3/agent.py` and `upstream/dreamerv3/rssm.py`.
       Record name and shape of: observation, action, encoder tokens,
       deterministic and stochastic latent state, predicted reward,
       continuation, actor output, critic value. Fill `docs/architecture.md`.
-- [ ] Draw the original data-flow diagram. Mark where real data stops and
-      imagination begins.
+      Done with `analysis/trace_batch.py` (measured shapes, baseline config).
+- [x] Draw the original data-flow diagram. Mark where real data stops and
+      imagination begins. Mermaid diagram in `docs/architecture.md`.
 - [ ] If a second GPU is free: launch seeds 1 and 2 of the baseline.
 
 **Done when:** the team has reviewed `docs/architecture.md` and the diagram.
@@ -116,12 +117,14 @@ committed.
 
 ## Week 5 — M3: prediction and imagination
 
-- [ ] Task 4: open-loop prediction from a real trajectory prefix. Use the
+- [x] Task 4: open-loop prediction from a real trajectory prefix. Use the
       `openloop/*` videos from the run report (`agent.py`, `report()`), and
       compare predicted vs observed reward / continuation over k future steps.
-- [ ] Task 5: document how actor and critic train on imagined rollouts
+- [x] Task 5: document how actor and critic train on imagined rollouts
       (`imag_length: 15`, `horizon: 333` in `configs.yaml`). Plot return
       next to world-model loss over training.
+      Done: `docs/architecture.md` section "Imagination", figure
+      `docs/figures/<run-id>-imagination.svg` from `analysis/plot_curves.py`.
 
 **Done when:** prediction figure and imagination section done, M3 approved.
 
@@ -132,17 +135,18 @@ committed.
       (`slurm/03_eval.sbatch` on PERUN): it fixes the Crafter world seed,
       which upstream `--script eval_only` cannot, and records the 22
       achievements for the Crafter score.
-- [ ] Task 7: launch one sensitivity run. Suggested: `--agent.imag_length 5`
+- [x] Task 7: launch one sensitivity run. Suggested: `--agent.imag_length 5`
       vs default 15. Change nothing else.
+      Launched: `20261124-imag5-s0`, job 172542.
 - [x] Fill the evaluation table (assignment A.7) except the sensitivity row.
-      Done in `docs/results.md` (prediction column waits for Task 4).
+      Done in `docs/results.md`.
 
 ## Week 7 — M4 / M5: sensitivity results and failures
 
 - [ ] Sensitivity results vs default; explain the effect.
-- [ ] Task 8: failure cases: error growth over the open-loop horizon,
+- [x] Task 8: failure cases: error growth over the open-loop horizon,
       missed sparse rewards, reward-model errors, crashed or failed runs
-      from `EXPERIMENTS.md`.
+      from `EXPERIMENTS.md`. Draft in `docs/failures.md`.
 - [ ] GPU utilisation and wall-clock time of the main run.
 
 **Done when:** M4 approved, failure section drafted.
