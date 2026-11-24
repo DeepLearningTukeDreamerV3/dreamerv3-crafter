@@ -141,9 +141,9 @@ committed.
 ## Week 7 — M4 / M5: sensitivity results and failures
 
 - [ ] Sensitivity results vs default; explain the effect.
-- [ ] Task 8: failure cases: error growth over the open-loop horizon,
+- [x] Task 8: failure cases: error growth over the open-loop horizon,
       missed sparse rewards, reward-model errors, crashed or failed runs
-      from `EXPERIMENTS.md`.
+      from `EXPERIMENTS.md`. Draft in `docs/failures.md`.
 - [ ] GPU utilisation and wall-clock time of the main run.
 
 **Done when:** M4 approved, failure section drafted.

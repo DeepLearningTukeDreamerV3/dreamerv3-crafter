@@ -36,7 +36,11 @@ Plain-language definitions. Add terms when you meet new ones.
 - **Observation** — what the agent sees at one step (an image).
 - **Action** — what the agent does at one step.
 - **Reward** — number the environment gives after an action. Crafter gives
-  +1 per new achievement, so rewards are rare (**sparse**).
+  +1 the first time each achievement is unlocked, so rewards are rare
+  (**sparse**), and ±0.1 when health goes up or down.
+- **False alarm** / **missed reward** — errors of the reward head in
+  [`failures.md`](failures.md): it predicts an achievement that does not
+  happen, or does not predict one that does.
 - **Episode** — one game from start to end.
 - **Return** / **episode score** — sum of rewards in an episode.
 - **Success rate** — share of episodes in which an achievement was
