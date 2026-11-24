@@ -122,9 +122,46 @@ Notes:
 
 ## Diagram
 
-Original diagram (draw.io / Excalidraw, export as SVG to
-`docs/figures/dataflow.svg`). It must show where real data stops and
-imagination begins.
+Data flow of one training step. Mermaid: GitHub draws it from the text
+below, so edit the text to change the diagram. Top (blue): the world
+model learns from real replayed frames. Bottom (orange): imagination,
+where the actor and critic learn. The edge marked **sg** is where real
+data stops: the posterior states are copied with a stop-gradient
+(`agent.py:196`), and after it no image, encoder or decoder is used.
+Shapes are the ones in the tables above. Not drawn, to keep the layout
+readable: the same actor also plays the real game (`policy`,
+`agent.py:115`), from the posterior state of the live frame.
+
+```mermaid
+flowchart TB
+  subgraph REAL["REAL DATA: world model learns from replayed frames"]
+    env["Crafter<br>image 64×64×3, reward"] --> replay["Replay buffer<br>sample B=16 × T=64 steps"]
+    replay -- image --> enc["Encoder (CNN)<br>image → token 4096"]
+    enc -- token --> obs["RSSM observe (posterior)<br>deter 8192 ← GRU(prev deter, stoch, action)<br>posterior: deter + token → stoch 32×64<br>prior: deter only, no image"]
+    replay -- action --> obs
+    obs --> kl["dyn, rep loss<br>KL(posterior ‖ prior)"]
+    obs --> feat["feature 10240<br>deter + flattened stoch"]
+    feat --> dec["Decoder → image<br>image loss"]
+    feat --> rew["Reward head<br>rew loss"]
+    feat --> con["Continue head<br>con loss"]
+    feat --> val["Critic<br>repval loss"]
+  end
+  subgraph IMAG["IMAGINATION: no frames, world model only"]
+    starts["1024 start states<br>every posterior state, B·T"] --> img["RSSM imagine (prior)<br>same GRU, 15 steps ahead<br>stoch sampled from the prior"]
+    img -- feature --> actor["Actor<br>feature → 17 action logits"]
+    actor -- action --> img
+    img --> ifeat["imagined features<br>1024 × 15 × 10240"]
+    ifeat --> irew["Reward head"]
+    ifeat --> icon["Continue head → discount"]
+    ifeat --> ival["Critic → value"]
+    irew --> ret["λ-return → policy loss (actor), value loss (critic)<br>the world model does not learn here"]
+    icon --> ret
+    ival --> ret
+  end
+  obs == "sg: real data stops here" ==> starts
+  style REAL fill:#2a78d61a,stroke:#2a78d6
+  style IMAG fill:#eb68341a,stroke:#eb6834
+```
 
 ## Imagination: how the actor and critic learn (Task 5)
 
