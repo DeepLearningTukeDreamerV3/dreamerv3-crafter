@@ -54,7 +54,8 @@ CLAUDE.md            imports AGENTS.md for Claude Code
 ROADMAP.md           8-week plan with checkboxes
 CONTRIBUTING.md      branches, PRs, experiment naming
 EXPERIMENTS.md       every run, including failed ones
-docs/                learning path, glossary, git workflow, architecture, HPC, report
+docs/                learning path, glossary, git workflow, architecture, HPC,
+                     failure cases (Task 8), report
 scripts/             setup check, env snapshot, random agent, issue list,
                      perun.sh (fixed PERUN commands, run from the laptop),
                      eval_agent.py (checkpoint or random agent on fixed worlds, Task 6),
@@ -63,6 +64,7 @@ analysis/            plotting scripts and notebooks;
                      plot_curves.py (return + loss SVGs of one run, Task 3),
                      trace_batch.py (tensor shapes of one batch, Task 2),
                      dashboard.py (one offline HTML page: runs, evals, findings, roadmap)
+                     failures.py (open-loop error growth and reward errors, Task 8)
 docs/figures/        figures for the report, named after the run ID
 runs/                small logs of finished runs (metrics, scores, config)
 slurm/               SLURM job scripts for the PERUN cluster
