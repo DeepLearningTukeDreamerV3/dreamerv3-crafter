@@ -97,7 +97,10 @@ Plain-language definitions. Add terms when you meet new ones.
   and whether the episode continues.
 - **Imagination** / **imagined rollout** — sequence of prior states produced
   by the world model and the actor, without touching the real environment.
-  Length: `imag_length` (15).
+  Length: `imag_length` (15), the **imagination horizon**. Our
+  sensitivity run uses 5 (`docs/results.md`).
+- **Sensitivity experiment** — a run that changes one setting only, to
+  see its effect against the baseline.
 - **Open-loop prediction** — start from real observations, then predict the
   future using only actions. Shown as `openloop/*` videos in the logs, and
   made from a checkpoint by `scripts/openloop.py` (Task 4).
