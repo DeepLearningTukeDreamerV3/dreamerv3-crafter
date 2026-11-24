@@ -77,10 +77,11 @@ committed.
 ## Week 3 — M2: understand the architecture
 
 - [ ] Learning: DreamerV3 paper (`docs/learning-path.md` step 4).
-- [ ] Task 2: trace one batch through `upstream/dreamerv3/agent.py` and `upstream/dreamerv3/rssm.py`.
+- [x] Task 2: trace one batch through `upstream/dreamerv3/agent.py` and `upstream/dreamerv3/rssm.py`.
       Record name and shape of: observation, action, encoder tokens,
       deterministic and stochastic latent state, predicted reward,
       continuation, actor output, critic value. Fill `docs/architecture.md`.
+      Done with `analysis/trace_batch.py` (measured shapes, baseline config).
 - [ ] Draw the original data-flow diagram. Mark where real data stops and
       imagination begins.
 - [ ] If a second GPU is free: launch seeds 1 and 2 of the baseline.

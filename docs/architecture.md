@@ -1,38 +1,82 @@
 # Architecture and data flow (Task 2, milestone M2)
 
-Fill this in during week 3. Record real tensor shapes from a run with the
-`crafter` config (not `debug`).
+Shapes below are measured, not guessed: `analysis/trace_batch.py` rebuilds
+the network from the config of our baseline run
+(`runs/20261123-baseline-s0/config.yaml`, official `crafter` config, not
+`debug`) and follows one batch through the same calls as `Agent.loss`.
+It uses `jax.eval_shape`, so it runs on a laptop CPU in seconds and needs
+no checkpoint:
+
+```sh
+docker compose --profile cpu run --rm train-cpu python analysis/trace_batch.py
+```
 
 ## Code map
 
 | Component | File / function | Notes |
 |---|---|---|
-| Encoder | `upstream/dreamerv3/agent.py` | TODO |
-| RSSM: observe (posterior, real data) | `upstream/dreamerv3/rssm.py:61` `observe` | TODO |
-| RSSM: imagine (prior, imagination) | `upstream/dreamerv3/rssm.py:94` `imagine` | TODO |
-| Decoder | `upstream/dreamerv3/agent.py` | TODO |
-| Reward head | | TODO |
-| Continuation head | | TODO |
-| Actor (policy) | `upstream/dreamerv3/agent.py:115` `policy` | TODO |
-| Critic (value) | | TODO |
-| Losses | `upstream/dreamerv3/agent.py:137` `train` | TODO |
-| Report / open-loop video | `upstream/dreamerv3/agent.py:247` `report` | TODO |
+| Encoder | `upstream/dreamerv3/rssm.py:179` `Encoder` (call: `:210`) | 4 conv layers (depth 64×(2,3,4,4), kernel 5), each followed by a 2×2 max-pool: 64×64 image → 4×4×256 → flat token of 4096 |
+| RSSM: observe (posterior, real data) | `upstream/dreamerv3/rssm.py:61` `observe`, step `:75` `_observe` | Per time step: `_core` updates `deter` from previous `deter`, `stoch`, action; then `deter` + image token → posterior logits → sample `stoch` |
+| RSSM: core (sequence model) | `upstream/dreamerv3/rssm.py:135` `_core` | Block GRU, 8 blocks, `deter` 8192 |
+| RSSM: prior | `upstream/dreamerv3/rssm.py:161` `_prior` | 2 MLP layers on `deter` only → prior logits (no image) |
+| RSSM: imagine (prior, imagination) | `upstream/dreamerv3/rssm.py:94` `imagine` | Same `_core`, but `stoch` sampled from the prior; the action comes from the actor |
+| Decoder | `upstream/dreamerv3/rssm.py:253` `Decoder` (call: `:288`) | Feature → reconstructed image; used only for the `image` loss |
+| Reward head | `upstream/dreamerv3/agent.py:57` `self.rew` (MLPHead) | Feature → reward, 255-bin `symexp_twohot` output, used at `:173` (real) and `:205` (imagined) |
+| Continuation head | `upstream/dreamerv3/agent.py:58` `self.con` (MLPHead) | Feature → probability the episode continues, used at `:177` and `:206` |
+| Actor (policy) | `upstream/dreamerv3/agent.py:62` `self.pol` (MLPHead) | Feature → logits over 17 actions. Acting: `policy` `:115`; training: imagined features `:192`, `:207` |
+| Critic (value) | `upstream/dreamerv3/agent.py:65` `self.val`, slow copy `:66` | Feature → expected λ-return, 255-bin output, used at `:208` (imagined) and `:228` (replay) |
+| Losses | `upstream/dreamerv3/agent.py:156` `loss`, called by `train` `:137` | See "Losses" below |
+| Report / open-loop video | `upstream/dreamerv3/agent.py:247` `report` | Task 4 |
+
+"Feature" = `feat2tensor` (`agent.py:51`): `deter` and the flattened
+`stoch` side by side, 8192 + 32×64 = 10240 numbers per time step. Every
+head (reward, continuation, actor, critic, decoder) reads it.
 
 ## Tensors for one batch
 
-Batch size `B = 16`, sequence length `T = 64` (`configs.yaml` defaults).
+From `analysis/trace_batch.py` with the baseline config. `B = 16`
+sequences of `T = 64` steps are sampled from the replay buffer
+(`batch_size`, `batch_length`). Imagination starts from **every** real
+step, so `B·T = 1024` start states, each rolled out `H = 15` steps
+(`imag_length`). `bfloat16` is a 16-bit float used for speed; the heads
+output `float32`.
+
+Real data (world-model training, `agent.py:164-177`):
 
 | Name | Shape | dtype | Meaning |
 |---|---|---|---|
-| observation `image` | `(B, T, 64, 64, 3)` | uint8 | TODO |
-| action | | | |
-| encoder tokens | | | |
-| deterministic state `deter` | | | |
-| stochastic state `stoch` | | | |
-| predicted reward | | | |
-| continuation | | | |
-| actor output | | | |
-| critic value | | | |
+| observation `image` | `(B, T, 64, 64, 3)` | uint8 | RGB frame, values 0–255 |
+| `reward`, `is_first`, `is_last`, `is_terminal` | `(B, T)` | float32 / bool | Reward of the step; episode start; episode end; end by death (not time limit) |
+| action (`prevact`) | `(B, T)` | int32 | Index of the action taken *before* each frame (17 Crafter actions) |
+| encoder tokens | `(B, T, 4096)` | bfloat16 | Image compressed by the CNN encoder |
+| deterministic state `deter` | `(B, T, 8192)` | bfloat16 | Recurrent memory of the RSSM (block GRU output) |
+| posterior logits | `(B, T, 32, 64)` | bfloat16 | 32 categorical variables × 64 classes, computed *with* the image |
+| prior logits | `(B, T, 32, 64)` | bfloat16 | Same, predicted from `deter` *without* the image; `dyn`/`rep` compare the two |
+| stochastic state `stoch` | `(B, T, 32, 64)` | bfloat16 | One-hot sample of the posterior: 32 choices out of 64 |
+| feature | `(B, T, 10240)` | bfloat16 | `deter` + flattened `stoch`, input of every head |
+| reconstructed image | `(B, T, 64, 64, 3)` | float32 | Decoder output (mean), compared with `image / 255` |
+| predicted reward | `(B, T)` | float32 | Reward head |
+| continuation | `(B, T)` | float32 | Probability the episode goes on |
+| critic value | `(B, T)` | float32 | Used by the `repval` loss on real data |
+
+Imagination (actor and critic training, `agent.py:189-214`). No image,
+no encoder, no decoder from here on: this is where real data stops.
+
+| Name | Shape | dtype | Meaning |
+|---|---|---|---|
+| start `deter` | `(B·T, 8192)` = `(1024, 8192)` | bfloat16 | Every posterior state of the batch becomes a start point |
+| imagined `deter` | `(1024, 15, 8192)` | bfloat16 | `_core` rolled forward 15 steps |
+| imagined `stoch` | `(1024, 15, 32, 64)` | bfloat16 | Sampled from the **prior** (no image) |
+| imagined feature | `(1024, 15, 10240)` | bfloat16 | Input of the heads |
+| actor output (logits) | `(1024, 15, 17)` | float32 | Scores for the 17 actions; the action is sampled from them |
+| imagined action | `(1024, 15)` | int32 | Sampled action per imagined step |
+| predicted reward | `(1024, 15)` | float32 | Reward head on imagined features |
+| continuation | `(1024, 15)` | float32 | Continuation head on imagined features |
+| critic value | `(1024, 15)` | float32 | Critic on imagined features |
+
+`Agent.loss` then puts the real start state in front of the 15 imagined
+steps (`agent.py:196`), so the imagination losses see `H + 1 = 16` steps
+per start (`assert` at `:200`).
 
 ## Losses
 
