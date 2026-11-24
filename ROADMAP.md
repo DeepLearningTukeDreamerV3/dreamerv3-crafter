@@ -89,21 +89,22 @@ committed.
 
 ## Week 4 — M1 / M3: baseline and world-model losses
 
-- [ ] Baseline finishes (1.1M env steps). If the smoke test shows it
+- [x] Baseline finishes (1.1M env steps). If the smoke test shows it
       cannot finish in time, stop at a fixed step count and say so.
       Decision 2026-11-23: stop `20261123-baseline-s0` at ~200k env
-      steps (~3 h on one H200; 1.1M would take ~19 h). Task 1 asks for a
+      steps (~3 h on one H200; 1.1M would take ~19 h). Stopped at
+      213,620 steps on 2026-11-24 after 3 h 46 min. Task 1 asks for a
       *short* reproduction run without code changes, and the score
       already rises in the first 15k steps. The sensitivity run uses the
       same 200k budget. Resume later with the same run ID if needed.
 - [x] Task 3: map each loss in `metrics.jsonl` to its component
       (`train/loss/image`, `rew`, `con`, `dyn`, `rep`, `policy`, `value`, `repval`).
       Done in `docs/architecture.md`, section "Losses".
-- [ ] Plot: episode return vs env steps; world-model losses vs train steps.
+- [x] Plot: episode return vs env steps; world-model losses vs train steps.
       Script: `analysis/plot_curves.py <run-id>`. It uses env steps on the
       x axis for both (one train update every 2 env steps:
       `train_ratio` 512 / batch 16×64). Commit the figures with the
-      final baseline logs.
+      final baseline logs. Figures: `docs/figures/20261123-baseline-s0-*.svg`.
 - [ ] Compare the return curve with the published reference
       (same config as the paper, so scores should be close; explain any gap).
       `upstream/scores/` has no Crafter file: use the DreamerV3 paper.
