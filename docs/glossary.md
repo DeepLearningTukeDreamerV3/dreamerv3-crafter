@@ -15,6 +15,18 @@ Plain-language definitions. Add terms when you meet new ones.
 - **JAX** — Python library for numerical computing on GPU. DreamerV3 is
   written in it.
 - **`jax.jit`** — compiles a function for speed. The first call is slow.
+- **`jax.eval_shape`** — runs a function on placeholders that only have a
+  shape and a dtype. Returns the output shapes without computing anything
+  (`analysis/trace_batch.py`).
+- **Logits** — raw scores before softmax. Softmax turns them into
+  probabilities.
+- **One-hot** — a vector of zeros with a single 1 that marks the chosen
+  class.
+- **bfloat16** — 16-bit floating-point number. Half the memory of
+  float32, faster on GPU, less precise. DreamerV3 computes in it.
+- **Batch** (`B`, `batch_size`) and **sequence length** (`T`,
+  `batch_length`) — one training step uses `B` sequences of `T`
+  consecutive steps from the replay buffer (16 × 64 here).
 
 ## Reinforcement learning
 
@@ -43,6 +55,10 @@ Plain-language definitions. Add terms when you meet new ones.
 - **World model** — network that predicts how the environment changes
   after an action.
 - **Latent state** — compact vector the model uses instead of the image.
+- **Encoder tokens** — the image compressed by the CNN encoder into one
+  vector per step (4096 numbers in our config).
+- **Feature** (`feat2tensor`) — `deter` and the flattened `stoch` side by
+  side (10240 numbers). Every head reads it.
 - **RSSM** (recurrent state-space model) — DreamerV3's world model
   (`upstream/dreamerv3/rssm.py`). Its state has two parts:
   - **deterministic state** (`deter`) — memory, updated by a recurrent network
@@ -61,6 +77,13 @@ Plain-language definitions. Add terms when you meet new ones.
 - **λ-return** — target for the critic: a mix of real or imagined rewards
   over the next steps and the critic's own estimate further ahead
   (`lam: 0.95`).
+- **Discount** (γ) — weight for future rewards: a reward `k` steps ahead
+  counts `γ^k`. DreamerV3 sets γ = 1 − 1/`horizon` = 0.997.
+- **Entropy** (of the policy) — how spread out the action choice is.
+  Maximum (ln 17 ≈ 2.83 nats for Crafter) = uniformly random; 0 = always
+  the same action.
+- **REINFORCE** — policy-gradient rule: raise `log π(a)` of actions with
+  a positive advantage, lower it for a negative one.
 - **Advantage** — how much better an action turned out than the critic
   expected (return minus value). The actor raises the probability of
   actions with a positive advantage (REINFORCE-style policy gradient).
