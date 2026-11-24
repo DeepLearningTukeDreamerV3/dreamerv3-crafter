@@ -17,7 +17,7 @@ achievement, ±0.1 per health point; mean ± standard deviation over the
 | Random agent | 0 | 1.52 ± 1.08 | 1.4 % | none (no model) | Reference lower baseline | `20261124-eval-random` |
 | Early DreamerV3 checkpoint | ~40–52k | 2.64 ± 1.37 | 2.7 % | not measured (Task 4 used the final checkpoint) | World model still immature | `20261124-eval-early-s0` |
 | Trained DreamerV3 | ~213k | 4.44 ± 1.61 | 4.3 % | open-loop image MSE 0.011 at 1 step, 0.032 at 32; below copy-last-frame from step 7; reward 2× too high (`docs/failures.md`) | Main result, stopped at 213,620 steps (ROADMAP week 4) | `20261124-eval-final-s0` |
-| Sensitivity variant | ~213k | 4.26 ± 1.29 | 3.4 % | not measured | `--agent.imag_length 5` (default 15), nothing else changed; see below | `20261124-eval-imag5-s0` |
+| Sensitivity variant | ~210k | 4.26 ± 1.29 | 3.4 % | not measured | `--agent.imag_length 5` (default 15), nothing else changed; see below | `20261124-eval-imag5-s0` |
 
 The order random < early < trained holds for both return and score.
 Mean episode length is the same for these three (174–176 steps): at
@@ -57,6 +57,8 @@ One change: `--agent.imag_length 5` instead of 15, so the actor and
 critic learn from imagined rollouts of 5 steps instead of 15
 (`docs/architecture.md`, Imagination). Same seed, same budget
 (`--run.steps 213620`, where the baseline stopped), same 50 eval worlds.
+Upstream saves no checkpoint when a run ends, so the evaluated imag5
+checkpoint is its last 15-minute save, ~208–210k steps (baseline: 213k).
 Training run `20261124-imag5-s0`, eval `20261124-eval-imag5-s0`.
 
 ![Baseline vs imag5: return, value loss, image loss](figures/20261124-imag5-s0-vs-20261123-baseline-s0.svg)
