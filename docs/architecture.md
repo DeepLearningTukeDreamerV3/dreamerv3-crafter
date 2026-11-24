@@ -126,7 +126,87 @@ Original diagram (draw.io / Excalidraw, export as SVG to
 `docs/figures/dataflow.svg`). It must show where real data stops and
 imagination begins.
 
-## Imagination settings (Task 5)
+## Imagination: how the actor and critic learn (Task 5)
 
-From `upstream/dreamerv3/configs.yaml`: `imag_length: 15`, `horizon: 333`,
-`imag_loss.lam: 0.95`. Explain each.
+The actor and critic never train on real frames. They train on
+**imagined rollouts**: sequences that the world model predicts from its
+latent state, without the environment and without images. Code:
+`Agent.loss` (`upstream/dreamerv3/agent.py:188-214`) and `imag_loss`
+(`agent.py:382`). Settings from our run's `config.yaml`.
+
+### Steps, for one training batch
+
+1. **Start states.** Every posterior state of the replayed batch is a
+   start: `B·T = 16·64 = 1024` starts (`imag_last: 0` means "all T
+   steps"). `dyn.starts`, `agent.py:191`.
+2. **Rollout.** 15 times (`imag_length`): the actor picks an action from
+   the feature; the RSSM core updates `deter`; `stoch` is sampled from
+   the **prior** (no image). `rssm.py:94` `imagine`. The real start state
+   is put in front, so each rollout has 16 states (`agent.py:196`).
+3. **Heads on every imagined state** (`agent.py:202-209`): reward head
+   → reward `r`; continuation head → `c`, probability the episode goes
+   on; critic → value `v`; slow critic → `v_slow`.
+4. **λ-return** (`lambda_return`, `agent.py:482`), computed backwards
+   from the last state:
+
+   ```
+   R_15 = v_15
+   R_t  = r_t+1 + c_t+1 · ((1 − λ) · v_t+1 + λ · R_t+1)
+   ```
+
+   With λ = 0.95 the target trusts the imagined rewards most and the
+   critic a little. The discount is inside `c`: with `contdisc: true` the
+   continuation head is trained on `(1 − 1/horizon) · not terminal`
+   (`agent.py:174-176`), so `c ≈ 0.997` on safe steps.
+5. **Weight.** `weight = cumprod(c)` (`agent.py:402`): a step counts less
+   when the model thinks the episode may already have ended.
+6. **Critic loss `value`** (`agent.py:418-422`): the critic's 255-bin
+   output is pulled toward `R_t` (cross-entropy), plus a second term
+   that pulls it toward the slow critic (`slowreg: 1.0`). The slow critic
+   follows the critic slowly (`slowvalue.rate: 0.02` per update). A second
+   critic loss, `repval` (scale 0.3), trains the same critic on real
+   replayed sequences.
+7. **Actor loss `policy`** (`agent.py:407-415`): REINFORCE:
+   `−log π(a_t) · advantage − 0.0003 · entropy`, with
+   `advantage = (R_t − v_t) / S`. `S` is the spread of the returns, the
+   95th minus 5th percentile and at least 1 (`retnorm: perc, limit 1`),
+   so the same settings work for small and large rewards. The gradient
+   only flows through `log π`, not through the world model.
+
+**Nothing in steps 2–7 trains the world model**: the start states and
+imagined features pass through a stop-gradient (`agent.py:196`,
+`ac_grads: false`). The world model learns only from real data (losses
+`image`, `rew`, `con`, `dyn`, `rep`).
+
+### Settings
+
+| Setting | Value | Meaning |
+|---|---|---|
+| `imag_length` | 15 | Imagined steps per rollout. Longer: the actor sees further ahead, but model errors pile up. Our sensitivity run uses 5 (`20261124-imag5-s0`) |
+| `horizon` | 333 | Discount γ = 1 − 1/333 ≈ 0.997. A reward 333 steps ahead counts ≈ 0.997³³³ ≈ 0.37 of an immediate one. Rewards beyond 15 imagined steps enter only through the critic `v_15` |
+| `imag_loss.lam` | 0.95 | λ of the λ-return: 1 = sum of imagined rewards + critic only at the end; 0 = one reward + critic at the next step |
+| `imag_loss.actent` | 0.0003 | Entropy bonus: keeps the actor from becoming deterministic too early |
+| `retnorm` | 5th–95th percentile, limit 1 | Scale of the advantage (step 7) |
+| `slowvalue.rate` | 0.02 | How fast the slow critic follows the critic |
+
+### Evidence from the baseline
+
+Figure: `docs/figures/20261123-baseline-s0-imagination.svg`
+(`analysis/plot_curves.py`). Top row: real side (episode return, three
+world-model losses). Bottom row: imagination side. Values from
+`runs/20261123-baseline-s0/metrics.jsonl`, mean of the first 3 vs the
+last 10 log lines:
+
+| Metric (`train/...`) | Start (~3k steps) | End (~213k) | Reading |
+|---|---|---|---|
+| `ent/action` actor entropy | 1.18 | 0.19 | Uniform over 17 actions would be ln 17 = 2.83 nats. The actor is almost deterministic in imagination at the end |
+| `val` critic value | 1.33 | 1.66 | Expected return rises, like the real return (2.0 → 4.5 per episode) |
+| `adv_mag` \|advantage\| | 0.081 | 0.034 | Imagined actions are rarely much better than the critic expects: the actor has settled |
+| `weight` | 0.93 | 0.95 | Over 16 imagined steps the model rarely predicts the end of the episode |
+| `rew` imagined reward per step | 0.036 | 0.035 | Real: 4.45 / 199 ≈ 0.022 per step (last 100 training episodes) |
+
+The imagined reward per step is about 1.6 times the real one. This
+suggests the world model is **optimistic** about reward, or the actor
+finds rewards in imagination that it does not reach in the real game.
+Task 4 (open-loop prediction) and Task 8 (reward-model errors) check this
+on real trajectories.
