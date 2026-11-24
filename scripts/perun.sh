@@ -66,8 +66,13 @@ logdir_of() {
 }
 
 # Update the cluster clone to a branch. --ff-only: never rewrite history.
+# Each job writes runs/<id>/env.txt into the clone (env_snapshot.sh); once
+# we commit that file, git refuses to switch to a branch that has it.
+# So first remove an untracked env.txt, but only if it is byte-identical
+# to the committed copy on the target branch: nothing is lost. A file
+# that differs is kept, and the switch then stops with git's error.
 pull() {
-  echo "cd ~/$REPO && git fetch --quiet && git switch --quiet $1 && git pull --quiet --ff-only && git log --oneline -1"
+  echo "cd ~/$REPO && git fetch --quiet && for f in \$(git ls-files --others --exclude-standard 'runs/*/env.txt'); do git show origin/$1:\$f 2>/dev/null | cmp -s - \$f && rm \$f && echo \"removed \$f (same as committed)\" || true; done && git switch --quiet $1 && git pull --quiet --ff-only && git log --oneline -1"
 }
 
 YES=0
