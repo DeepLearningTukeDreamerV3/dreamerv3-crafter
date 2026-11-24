@@ -97,7 +97,12 @@ checkpoint copy runs in a job through `srun`.
 
 `smoke`, `submit`, `early-ckpt`, `cancel` and `eval` change the cluster, so they ask y/N.
 Without a terminal, put `-y` first: `scripts/perun.sh -y smoke main`.
-The cluster clone is only updated with `git pull --ff-only`. Arguments
+The cluster clone is only updated with `git pull --ff-only`. Every job
+writes `runs/<id>/env.txt` into the clone; after we commit that file,
+git would refuse to switch branch. So "pull" first deletes an untracked
+`runs/*/env.txt` only if it is identical to the committed copy on the
+target branch, and prints `removed ...`. A different file is kept and
+the switch stops with git's error. Arguments
 with spaces or shell characters are refused. The script gives up after 10 s
 if PERUN cannot be reached (VPN off). If your key has a passphrase, run
 `ssh-add ~/.ssh/perun` once per session: without a terminal the script
