@@ -106,7 +106,7 @@ committed.
 
 ## Week 5 — M3: prediction and imagination
 
-- [ ] Task 4: open-loop prediction from a real trajectory prefix. Use the
+- [x] Task 4: open-loop prediction from a real trajectory prefix. Use the
       `openloop/*` videos from the run report (`agent.py`, `report()`), and
       compare predicted vs observed reward / continuation over k future steps.
 - [ ] Task 5: document how actor and critic train on imagined rollouts
