@@ -254,7 +254,7 @@ def main():
     # Upstream forbids implicit copies to the GPU: put the inputs there.
     obs, prevact = internal.device_put((obs, prevact), agent.train_sharded)
     seed = internal.device_put(np.array([args.seed, i], np.uint32), agent.train_mirrored)
-    rp, cp = heads(agent.params, obs, prevact, seed)
+    rp, cp = jax.device_get(heads(agent.params, obs, prevact, seed))  # explicit copy back
     rew_pred.append(np.asarray(rp, np.float32))
     rew_real.append(data['reward'][:, K:].astype(np.float32))
     con_pred.append(np.asarray(cp, np.float32))
