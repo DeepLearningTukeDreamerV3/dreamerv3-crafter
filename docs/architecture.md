@@ -26,7 +26,7 @@ docker compose --profile cpu run --rm train-cpu python analysis/trace_batch.py
 | Actor (policy) | `upstream/dreamerv3/agent.py:62` `self.pol` (MLPHead) | Feature → logits over 17 actions. Acting: `policy` `:115`; training: imagined features `:192`, `:207` |
 | Critic (value) | `upstream/dreamerv3/agent.py:65` `self.val`, slow copy `:66` | Feature → expected λ-return, 255-bin output, used at `:208` (imagined) and `:228` (replay) |
 | Losses | `upstream/dreamerv3/agent.py:156` `loss`, called by `train` `:137` | See "Losses" below |
-| Report / open-loop video | `upstream/dreamerv3/agent.py:247` `report` | Task 4 |
+| Report / open-loop video | `upstream/dreamerv3/agent.py:247` `report` | Observes the first half of a window, imagines the second half from the real actions, decodes both. `scripts/openloop.py` calls it on a trained checkpoint (Task 4) |
 
 "Feature" = `feat2tensor` (`agent.py:51`): `deter` and the flattened
 `stoch` side by side, 8192 + 32×64 = 10240 numbers per time step. Every

@@ -14,7 +14,7 @@ through `scripts/perun.sh` (table in `docs/hpc.md`). Never call `ssh`,
 
 - Run `scripts/perun.sh status`, `log <jobid>` and `fetch <run-id>`
   yourself whenever you need them (read-only, no prompt).
-- `smoke`, `submit`, `early-ckpt`, `cancel` and `eval` change the cluster. Run them with
+- `smoke`, `submit`, `early-ckpt`, `cancel`, `eval` and `openloop` change the cluster. Run them with
   `-y` (`scripts/perun.sh -y submit ...`): the user approves the
   permission prompt. Or ask the user to type `! scripts/perun.sh ...`.
 - Anything the script cannot do: give the user the raw commands to
