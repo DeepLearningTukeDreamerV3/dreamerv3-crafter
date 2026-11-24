@@ -105,11 +105,12 @@ committed.
       x axis for both (one train update every 2 env steps:
       `train_ratio` 512 / batch 16×64). Commit the figures with the
       final baseline logs. Figures: `docs/figures/20261123-baseline-s0-*.svg`.
-- [ ] Compare the return curve with the published reference
+- [x] Compare the return curve with the published reference
       (same config as the paper, so scores should be close; explain any gap).
       `upstream/scores/` has no Crafter file: use the DreamerV3 paper.
       Our run does not log achievements (`env.crafter.logs` false), so
       the paper's Crafter score comes from the Task 6 evaluation runs.
+      Done in `docs/results.md`: paper v1 Table M.1 vs our 213k run.
 
 **Done when:** baseline reproduced, curves committed, M1 approved.
 
@@ -126,14 +127,15 @@ committed.
 
 ## Week 6 — M4: baselines and sensitivity launch
 
-- [ ] Task 6: random agent and early checkpoint, same seeds and
+- [x] Task 6: random agent and early checkpoint, same seeds and
       episode count as the trained agent. Use `scripts/eval_agent.py`
       (`slurm/03_eval.sbatch` on PERUN): it fixes the Crafter world seed,
       which upstream `--script eval_only` cannot, and records the 22
       achievements for the Crafter score.
 - [ ] Task 7: launch one sensitivity run. Suggested: `--agent.imag_length 5`
       vs default 15. Change nothing else.
-- [ ] Fill the evaluation table (assignment A.7) except the sensitivity row.
+- [x] Fill the evaluation table (assignment A.7) except the sensitivity row.
+      Done in `docs/results.md` (prediction column waits for Task 4).
 
 ## Week 7 — M4 / M5: sensitivity results and failures
 

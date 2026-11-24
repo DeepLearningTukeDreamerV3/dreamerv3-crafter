@@ -50,7 +50,8 @@ CLAUDE.md            imports AGENTS.md for Claude Code
 ROADMAP.md           8-week plan with checkboxes
 CONTRIBUTING.md      branches, PRs, experiment naming
 EXPERIMENTS.md       every run, including failed ones
-docs/                learning path, glossary, git workflow, architecture, HPC, report
+docs/                learning path, glossary, git workflow, architecture, HPC,
+                     results (evaluation table, paper comparison), report
 scripts/             setup check, env snapshot, random agent, issue list,
                      perun.sh (fixed PERUN commands, run from the laptop),
                      eval_agent.py (checkpoint or random agent on fixed worlds, Task 6)
