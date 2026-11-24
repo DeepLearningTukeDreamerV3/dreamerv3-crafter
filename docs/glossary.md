@@ -15,6 +15,18 @@ Plain-language definitions. Add terms when you meet new ones.
 - **JAX** — Python library for numerical computing on GPU. DreamerV3 is
   written in it.
 - **`jax.jit`** — compiles a function for speed. The first call is slow.
+- **`jax.eval_shape`** — runs a function on placeholders that only have a
+  shape and a dtype. Returns the output shapes without computing anything
+  (`analysis/trace_batch.py`).
+- **Logits** — raw scores before softmax. Softmax turns them into
+  probabilities.
+- **One-hot** — a vector of zeros with a single 1 that marks the chosen
+  class.
+- **bfloat16** — 16-bit floating-point number. Half the memory of
+  float32, faster on GPU, less precise. DreamerV3 computes in it.
+- **Batch** (`B`, `batch_size`) and **sequence length** (`T`,
+  `batch_length`) — one training step uses `B` sequences of `T`
+  consecutive steps from the replay buffer (16 × 64 here).
 
 ## Reinforcement learning
 
@@ -43,6 +55,10 @@ Plain-language definitions. Add terms when you meet new ones.
 - **World model** — network that predicts how the environment changes
   after an action.
 - **Latent state** — compact vector the model uses instead of the image.
+- **Encoder tokens** — the image compressed by the CNN encoder into one
+  vector per step (4096 numbers in our config).
+- **Feature** (`feat2tensor`) — `deter` and the flattened `stoch` side by
+  side (10240 numbers). Every head reads it.
 - **RSSM** (recurrent state-space model) — DreamerV3's world model
   (`upstream/dreamerv3/rssm.py`). Its state has two parts:
   - **deterministic state** (`deter`) — memory, updated by a recurrent network
