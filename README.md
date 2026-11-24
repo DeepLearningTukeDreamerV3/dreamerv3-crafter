@@ -56,7 +56,7 @@ scripts/             setup check, env snapshot, random agent, issue list,
                      eval_agent.py (checkpoint or random agent on fixed worlds, Task 6)
 analysis/            plotting scripts and notebooks;
                      plot_curves.py (return + loss SVGs of one run, Task 3)
-                     dashboard.py (one offline HTML page: all runs, evals, registry)
+                     dashboard.py (one offline HTML page: runs, evals, findings, roadmap)
 docs/figures/        figures for the report, named after the run ID
 runs/                small logs of finished runs (metrics, scores, config)
 slurm/               SLURM job scripts for the PERUN cluster
