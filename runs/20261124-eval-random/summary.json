@@ -1,0 +1,32 @@
+{
+  "agent": "random",
+  "episodes": 50,
+  "seed": 100,
+  "return_mean": 1.5199999932944774,
+  "return_std": 1.078702924550479,
+  "crafter_score": 1.3753599160852188,
+  "success_rates": {
+    "collect_coal": 0.0,
+    "collect_diamond": 0.0,
+    "collect_drink": 0.06,
+    "collect_iron": 0.0,
+    "collect_sapling": 0.6,
+    "collect_stone": 0.0,
+    "collect_wood": 0.26,
+    "defeat_skeleton": 0.0,
+    "defeat_zombie": 0.0,
+    "eat_cow": 0.0,
+    "eat_plant": 0.0,
+    "make_iron_pickaxe": 0.0,
+    "make_iron_sword": 0.0,
+    "make_stone_pickaxe": 0.0,
+    "make_stone_sword": 0.0,
+    "make_wood_pickaxe": 0.0,
+    "make_wood_sword": 0.0,
+    "place_furnace": 0.0,
+    "place_plant": 0.54,
+    "place_stone": 0.0,
+    "place_table": 0.02,
+    "wake_up": 0.96
+  }
+}
