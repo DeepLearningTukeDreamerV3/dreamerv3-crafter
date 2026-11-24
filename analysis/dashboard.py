@@ -8,6 +8,7 @@ Where the data comes from (nothing is typed in by hand except PAPER):
 - runs/<run-id>/metrics.jsonl   training curves (DreamerV3 logger)
 - runs/<eval-id>/summary.json   evaluations (scripts/eval_agent.py)
 - runs/<run-id>/media/          optional frames or videos (png, gif, mp4)
+- runs/<id>/openloop.json       open-loop error per step (scripts/openloop.py)
 - EXPERIMENTS.md                run registry, run status, colour order
 - ROADMAP.md                    ticked items per week and deliverables
 - PAPER below                   DreamerV3 paper v1, Table M.1
@@ -277,12 +278,25 @@ def load(root, out_dir):
     reg_rows = registry(root)
     reg = {r.get("Run ID"): r for r in reg_rows}
     order = {r.get("Run ID"): i for i, r in enumerate(reg_rows)}
-    runs, evals, media = [], [], []
+    runs, evals, media, openloops = [], [], [], []
     for d in sorted(p for p in (root / "runs").iterdir() if p.is_dir()):
         for f in sorted((d / "media").glob("*")) if (d / "media").is_dir() else []:
             if f.suffix.lower() in MEDIA:
                 media.append({"path": str(f), "run": d.name, "name": f.name, "video": f.suffix.lower() in {".mp4", ".webm"},
                               "src": os.path.relpath(f, out_dir).replace(os.sep, "/")})
+        ol = d / "openloop.json"
+        if ol.exists():
+            o = json.loads(ol.read_text())
+            sums = o.get("reward_sum_openloop", [])
+            openloops.append({
+                "id": d.name, "ckpt": o.get("ckpt"), "run": Path(o["run_dir"]).name,
+                "windows": o["windows"], "length": o["length"], "context": o["context"],
+                "mse": o["mse_by_step"], "copy": o["copy_last_mse_by_step"],
+                "rew_pred": o.get("reward_pred_by_step", []), "rew_real": o.get("reward_real_by_step", []),
+                "con": o.get("continue_prob_by_step", []),
+                "rew_sum_pred": mean([p for p, _ in sums]), "rew_sum_real": mean([r for _, r in sums]),
+                "ends": o.get("windows_with_episode_end", 0)})
+            continue
         summary = d / "summary.json"
         if summary.exists():
             s = json.loads(summary.read_text())
@@ -350,7 +364,7 @@ def load(root, out_dir):
     # not repaint the others.
     runs.sort(key=lambda r: (r["order"], r["id"]))
     evals.sort(key=lambda e: e["order"])
-    return runs, evals, reg_rows, media
+    return runs, evals, reg_rows, media, openloops
 
 
 PAGE = r"""<!doctype html>
@@ -777,15 +791,101 @@ sectionInfo('eval', 'Task 6: the same 50 Crafter worlds (seed 100) for every age
 const mbox = document.getElementById('media');
 sectionInfo('frames', 'The core evidence for a world model: real frames next to the frames the model predicts ' +
   '("open loop": after a few real frames, the model continues alone, from its own predictions). Errors grow with ' +
-  'the horizon; where they grow is Task 8. Put png, gif or mp4 files in runs/<run-id>/media/ and rebuild.');
+  'the horizon; where they grow is Task 8. Made by scripts/openloop.py: each window has 32 real frames ' +
+  '(context), then 32 frames the model predicts from the actions alone. In the images: top row real, middle ' +
+  'predicted, bottom the difference; green border = context, red = open loop.');
 if (D.media.length) {
   const g = el('div', {class: 'media'}, mbox);
   D.media.forEach(m => { const c = el('div', {class: 'card'}, g); el('h3', {text: `${m.run} · ${m.name}`}, c);
     m.video ? el('video', {src: m.src, controls: '', loop: '', muted: ''}, c) : el('img', {src: m.src, alt: m.name}, c); });
 } else {
-  el('p', {class: 'sub', text: 'Not available yet. DreamerV3 renders these "openloop" videos every 300 s into the scope ' +
-    'folder of each logdir on PERUN; we have not copied them yet. Task 4 adds them in runs/<run-id>/media/.'}, mbox);
+  el('p', {class: 'sub', text: 'Not available yet. scripts/openloop.py (slurm/04_openloop.sbatch) writes them to ' +
+    'runs/<openloop-id>/media/ after a fetch.'}, mbox);
 }
+
+// Open-loop error per step (scripts/openloop.py, Task 4)
+// lines: [{label, color, dash, vals}], one value per step of the window;
+// null = not drawn at that step.
+function stepChart(card, title, lines, ctx) {
+  const n = Math.max(...lines.map(l => l.vals.length));
+  if (lines.length > 1) {
+    const lg = el('div', {class: 'legend'}, card);
+    lines.forEach(l => { const s = el('span', {}, lg);
+      el('i', {class: 'key' + (l.dash ? ' dash' : ''), style: `border-color:${l.color}`}, s);
+      s.appendChild(document.createTextNode(l.label)); });
+  }
+  const svg = el('svg', {viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': title}, card);
+  const ys = lines.flatMap(l => l.vals).filter(v => v !== null);
+  const top = Math.max(...ys), prob = top <= 1 && Math.min(...ys) >= 0 && top > 0.9;
+  const yt = ticks(Math.min(0, ...ys), prob ? 1 : top * 1.05 || 1);   // probabilities stop at 1
+  const y0 = yt[0], y1 = yt[yt.length - 1], iw = W - PL - PR, ih = H - PT - PB;
+  const X = v => PL + v / (n - 1) * iw, Y = v => PT + ih - (v - y0) / (y1 - y0 || 1) * ih;
+  // Context steps: the model sees the real frames. Shaded, labelled.
+  el('rect', {x: PL, y: PT, width: X(ctx - 0.5) - PL, height: ih, fill: 'var(--grid)', opacity: 0.5}, svg);
+  el('text', {x: PL + 4, y: PT + 11, text: 'context'}, svg);
+  el('text', {x: X(ctx - 0.5) + 4, y: PT + 11, text: 'open loop'}, svg);
+  yt.forEach(t => { el('line', {x1: PL, x2: PL + iw, y1: Y(t), y2: Y(t), class: 'gl'}, svg);
+    el('text', {x: PL - 5, y: Y(t) + 3, 'text-anchor': 'end', text: fmt(t)}, svg); });
+  ticks(0, n - 1).filter(t => t <= n - 1).forEach(t =>
+    el('text', {x: X(t), y: H - 6, 'text-anchor': 'middle', text: String(t)}, svg));
+  el('line', {x1: PL, x2: PL + iw, y1: PT + ih, y2: PT + ih, class: 'ax'}, svg);
+  lines.forEach(l => el('path', {fill: 'none', stroke: l.color, 'stroke-width': 2, 'stroke-linejoin': 'round',
+    'stroke-dasharray': l.dash ? '5 3' : 'none',
+    d: l.vals.map((v, i) => v === null ? '' : (i && l.vals[i - 1] !== null ? 'L' : 'M') +
+      X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ')}, svg));
+  const hair = el('line', {y1: PT, y2: PT + ih, class: 'ax', visibility: 'hidden'}, svg);
+  const tip = el('div', {class: 'tip'}, card);
+  svg.addEventListener('pointermove', ev => {
+    const box = svg.getBoundingClientRect();
+    const i = Math.round(Math.max(0, Math.min(n - 1, ((ev.clientX - box.left) / box.width * W - PL) / iw * (n - 1))));
+    hair.setAttribute('x1', X(i)); hair.setAttribute('x2', X(i)); hair.setAttribute('visibility', 'visible');
+    tip.replaceChildren(el('div', {class: 'dim',
+      text: i < ctx ? `step ${i} · context` : `step ${i} · ${i - ctx + 1} step${i > ctx ? 's' : ''} ahead`}));
+    lines.forEach(l => { const row = el('div', {class: 'row'}, tip);
+      el('span', {class: 'key' + (l.dash ? ' dash' : ''), style: `border-color:${l.color}`}, row);
+      el('b', {text: l.vals[i] === null ? '–' : fmt(l.vals[i])}, row); el('span', {class: 'dim', text: l.label}, row); });
+    tip.style.display = 'block';
+    const left = ev.clientX - card.getBoundingClientRect().left;
+    tip.style.left = Math.max(0, Math.min(left + 12, card.clientWidth - tip.offsetWidth - 4)) + 'px';
+    tip.style.top = '30px';
+  });
+  svg.addEventListener('pointerleave', () => { hair.setAttribute('visibility', 'hidden'); tip.style.display = 'none'; });
+}
+D.openloop.forEach(o => {
+  const avg = (a, i, j) => a.slice(i, j).reduce((x, y) => x + y, 0) / Math.max(1, a.slice(i, j).length);
+  const c = o.context, last = o.mse.length - 1;
+  el('p', {class: 'sub', text: `${o.id}: checkpoint ${o.ckpt || '(random weights)'} of ${o.run}, ` +
+    `${o.windows} windows of ${o.length} steps. Image error ${fmt(avg(o.mse, 0, c))} in the context, ` +
+    `${fmt(o.mse[c])} one step ahead, ${fmt(o.mse[last])} ${last - c + 1} steps ahead ` +
+    `(copying the last real frame: ${fmt(o.copy[c])} and ${fmt(o.copy[last])}). ` +
+    `Reward summed over the open-loop half: predicted ${fmt(o.rew_sum_pred)}, real ${fmt(o.rew_sum_real)} per window.`},
+    mbox);
+  const g = el('div', {class: 'grid'}, mbox);
+  let card = el('div', {class: 'card'}, g);
+  cardTitle(card, 'Image error per step', 'Mean squared error between predicted and real frame, pixels scaled ' +
+    'to 0..1, averaged over all windows. Left of the line the model sees the real frames (it only reconstructs ' +
+    'them); right of it the model predicts alone from the actions. Dashed: the error of a lazy guess that keeps ' +
+    'showing the last real frame. A world model worth its name stays below the dashed line for some steps.');
+  stepChart(card, 'Image error per step', [
+    {label: 'world model', color: 'var(--s1)', vals: o.mse},
+    // The lazy guess only exists once the real frames stop.
+    {label: 'copy last real frame', color: 'var(--ink2)', dash: true, vals: o.copy.map((v, i) => i < c ? null : v)}], c);
+  if (o.rew_pred.length) {
+    card = el('div', {class: 'card'}, g);
+    cardTitle(card, 'Reward per step', 'Mean predicted reward (reward head) vs mean real reward at each step, ' +
+      'over all windows. Crafter rewards are sparse (+1 for a new achievement, ±0.1 for health), so the real ' +
+      'line is spiky. In the open-loop half the head reads imagined states: can it foresee rewards without seeing frames?');
+    stepChart(card, 'Reward per step', [
+      {label: 'predicted', color: 'var(--s1)', vals: o.rew_pred},
+      {label: 'real', color: 'var(--s2)', dash: true, vals: o.rew_real}], c);
+  }
+  if (o.con.length) {
+    card = el('div', {class: 'card'}, g);
+    cardTitle(card, 'Continuation probability', 'Probability the continuation head gives that the episode goes ' +
+      `on at each step. Real value: 1 except at a death. ${o.ends} of ${o.windows} windows end with the episode.`);
+    stepChart(card, 'Continuation probability', [{label: 'predicted', color: 'var(--s1)', vals: o.con}], c);
+  }
+});
 
 // Objectives from ROADMAP.md
 sectionInfo('objectives', 'Read from the checkboxes of ROADMAP.md: weeks 1–8 and the 12 deliverables of the ' +
@@ -896,7 +996,7 @@ def main():
     args = ap.parse_args()
     out = (args.site / "index.html" if args.site else args.out).resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
-    runs, evals, reg, media = load(args.root, out.parent)
+    runs, evals, reg, media, openloops = load(args.root, out.parent)
     for m in media:
         if args.site:   # the site cannot reach ../runs, so copy the file in
             dest = out.parent / "media" / m["run"] / m["name"]
@@ -907,7 +1007,7 @@ def main():
     if args.site:
         (out.parent / ".nojekyll").write_text("")   # serve files as they are
     data = {"runs": runs, "evals": evals, "paper": PAPER, "registry": reg,
-            "charts": CHARTS, "media": media, "roadmap": roadmap(args.root),
+            "charts": CHARTS, "media": media, "openloop": openloops, "roadmap": roadmap(args.root),
             "glossary": glossary(args.root), "built": build_stamp(args.root), "repo": REPO_URL}
     # "</" inside the JSON would end the <script> tag early.
     text = json.dumps(data, separators=(",", ":")).replace("</", "<\\/")
