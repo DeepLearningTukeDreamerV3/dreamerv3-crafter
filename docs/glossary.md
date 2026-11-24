@@ -61,6 +61,13 @@ Plain-language definitions. Add terms when you meet new ones.
 - **λ-return** — target for the critic: a mix of real or imagined rewards
   over the next steps and the critic's own estimate further ahead
   (`lam: 0.95`).
+- **Discount** (γ) — weight for future rewards: a reward `k` steps ahead
+  counts `γ^k`. DreamerV3 sets γ = 1 − 1/`horizon` = 0.997.
+- **Entropy** (of the policy) — how spread out the action choice is.
+  Maximum (ln 17 ≈ 2.83 nats for Crafter) = uniformly random; 0 = always
+  the same action.
+- **REINFORCE** — policy-gradient rule: raise `log π(a)` of actions with
+  a positive advantage, lower it for a negative one.
 - **Advantage** — how much better an action turned out than the critic
   expected (return minus value). The actor raises the probability of
   actions with a positive advantage (REINFORCE-style policy gradient).

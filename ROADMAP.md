@@ -118,9 +118,11 @@ committed.
 - [ ] Task 4: open-loop prediction from a real trajectory prefix. Use the
       `openloop/*` videos from the run report (`agent.py`, `report()`), and
       compare predicted vs observed reward / continuation over k future steps.
-- [ ] Task 5: document how actor and critic train on imagined rollouts
+- [x] Task 5: document how actor and critic train on imagined rollouts
       (`imag_length: 15`, `horizon: 333` in `configs.yaml`). Plot return
       next to world-model loss over training.
+      Done: `docs/architecture.md` section "Imagination", figure
+      `docs/figures/<run-id>-imagination.svg` from `analysis/plot_curves.py`.
 
 **Done when:** prediction figure and imagination section done, M3 approved.
 
