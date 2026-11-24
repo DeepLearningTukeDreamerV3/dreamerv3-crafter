@@ -4,8 +4,11 @@
 Reads runs/<run-id>/scores.jsonl and metrics.jsonl and writes two SVG
 files to docs/figures/:
 
-  <run-id>-return.svg   episode return vs env steps (dots + moving average)
-  <run-id>-losses.svg   the 8 losses of Agent.loss vs env steps
+  <run-id>-return.svg       episode return vs env steps (dots + moving average)
+  <run-id>-losses.svg       the 8 losses of Agent.loss vs env steps
+  <run-id>-imagination.svg  return next to world-model losses (top) and
+                            what the actor and critic see in imagination
+                            (bottom), Task 5
 
 Only the standard library: the Docker image has no matplotlib. SVG opens
 in any browser and renders on GitHub. Which network each loss trains:
@@ -32,6 +35,22 @@ LOSSES = [
     ("train/loss/policy", "policy (actor, imagined)"),
     ("train/loss/value", "value (critic, imagined)"),
     ("train/loss/repval", "repval (critic, real replay)"),
+]
+
+# Task 5 figure, top row: three world-model losses next to the return.
+WORLD_MODEL = [
+    ("train/loss/image", "image loss (decoder)"),
+    ("train/loss/dyn", "dyn loss (prior)"),
+    ("train/loss/rew", "rew loss (reward head)"),
+]
+
+# Task 5 figure, bottom row: imagination metrics from imag_loss
+# (upstream/dreamerv3/agent.py:382). Means over all imagined steps.
+IMAGINATION = [
+    ("train/ent/action", "actor entropy (nats)"),
+    ("train/rew", "imagined reward per step"),
+    ("train/val", "critic value (imagined)"),
+    ("train/adv_mag", "|advantage| (imagined)"),
 ]
 
 # Colours follow the light/dark mode of the viewer.
@@ -78,8 +97,10 @@ def nice_ticks(lo, hi, n=4):
         step = m * mag
         if (hi - lo) / step <= n:
             break
+    # First tick at or below lo, last tick at or above hi, so every
+    # point fits inside the axis.
     t, ticks = (lo // step) * step, []
-    while t <= hi + step * 0.01:
+    while not ticks or ticks[-1] < hi - step * 0.01:
         ticks.append(round(t, 10))
         t += step
     return ticks
@@ -171,6 +192,20 @@ def main():
              f'policy, value: imagined data. repval: critic on real data. See docs/architecture.md.</text>')
     path = out_dir / f"{args.run_id}-losses.svg"
     path.write_text(svg(4 * cw, 2 * ch + 24, body, "Training losses vs env steps"))
+    print("wrote", path.relative_to(ROOT))
+
+    # Task 5: real-data side (top) next to imagination side (bottom).
+    top = [chart(0, 0, cw, ch, "episode return (real env)",
+                 [("moving average", BLUE, moving_average(scores, args.window))])]
+    top += [chart((i + 1) * cw, 0, cw, ch, title, [(key, BLUE, series(metrics, key))])
+            for i, (key, title) in enumerate(WORLD_MODEL)]
+    bottom = [chart(i * cw, ch, cw, ch, title, [(key, BLUE, series(metrics, key))])
+              for i, (key, title) in enumerate(IMAGINATION)]
+    body = "".join(top + bottom)
+    body += (f'<text x="46" y="{2 * ch + 14}" class="tick">{note} Top: real data (return, world-model losses). '
+             f'Bottom: imagined rollouts (imag_length steps from every replayed state). See docs/architecture.md, Task 5.</text>')
+    path = out_dir / f"{args.run_id}-imagination.svg"
+    path.write_text(svg(4 * cw, 2 * ch + 24, body, "Return, world-model losses and imagination metrics"))
     print("wrote", path.relative_to(ROOT))
 
 
