@@ -64,8 +64,9 @@ scripts/             setup check, env snapshot, random agent, issue list,
 analysis/            plotting scripts and notebooks;
                      plot_curves.py (return + loss SVGs of one run, Task 3),
                      trace_batch.py (tensor shapes of one batch, Task 2),
-                     dashboard.py (one offline HTML page: runs, evals, findings, roadmap)
-                     failures.py (open-loop error growth and reward errors, Task 8)
+                     dashboard.py (one offline HTML page: runs, evals, findings, roadmap),
+                     failures.py (open-loop error growth and reward errors, Task 8),
+                     compare_runs.py (two runs on the same charts, Task 7)
 docs/figures/        figures for the report, named after the run ID
 runs/                small logs of finished runs (metrics, scores, config)
 slurm/               SLURM job scripts for the PERUN cluster

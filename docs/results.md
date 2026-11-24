@@ -17,10 +17,10 @@ achievement, ±0.1 per health point; mean ± standard deviation over the
 | Random agent | 0 | 1.52 ± 1.08 | 1.4 % | none (no model) | Reference lower baseline | `20261124-eval-random` |
 | Early DreamerV3 checkpoint | ~40–52k | 2.64 ± 1.37 | 2.7 % | not measured (Task 4 used the final checkpoint) | World model still immature | `20261124-eval-early-s0` |
 | Trained DreamerV3 | ~213k | 4.44 ± 1.61 | 4.3 % | open-loop image MSE 0.011 at 1 step, 0.032 at 32; below copy-last-frame from step 7; reward 2× too high (`docs/failures.md`) | Main result, stopped at 213,620 steps (ROADMAP week 4) | `20261124-eval-final-s0` |
-| Sensitivity variant | 213,620 | todo | todo | todo | `--agent.imag_length 5` | `20261124-imag5-s0` |
+| Sensitivity variant | ~213k | 4.26 ± 1.29 | 3.4 % | not measured | `--agent.imag_length 5` (default 15), nothing else changed; see below | `20261124-eval-imag5-s0` |
 
 The order random < early < trained holds for both return and score.
-Mean episode length is the same for all three (174–176 steps): at
+Mean episode length is the same for these three (174–176 steps): at
 213k steps the agent collects more achievements per episode, but it does
 not yet survive longer than a random agent.
 
@@ -50,6 +50,64 @@ once. Achievements at 0 % for all three agents are left out:
 Training made the first steps of the tech tree reliable (wood → table →
 wood pickaxe) and started the next one (stone). Nothing beyond stone
 yet: no coal, iron, furnace or stone tools.
+
+## Sensitivity: imagination horizon 15 vs 5 (Task 7)
+
+One change: `--agent.imag_length 5` instead of 15, so the actor and
+critic learn from imagined rollouts of 5 steps instead of 15
+(`docs/architecture.md`, Imagination). Same seed, same budget
+(`--run.steps 213620`, where the baseline stopped), same 50 eval worlds.
+Training run `20261124-imag5-s0`, eval `20261124-eval-imag5-s0`.
+
+![Baseline vs imag5: return, value loss, image loss](figures/20261124-imag5-s0-vs-20261123-baseline-s0.svg)
+
+| | Horizon 15 (baseline) | Horizon 5 |
+|---|---|---|
+| Eval return (50 episodes) | 4.44 ± 1.61 | 4.26 ± 1.29 |
+| Crafter score | 4.3 % | 3.4 % |
+| Mean episode length (eval) | 176 | 193 |
+| Training return, last 20 episodes | 4.4 | 4.4 |
+| Value loss, mean after 180k steps | 1.58 | 1.32 |
+| Image loss, mean after 180k steps | 3.66 | 3.52 |
+| Training speed (`fps/train`, after 180k) | 8,100 | 9,100 |
+| Wall time to ~213k steps | 3 h 46 min | ~2 h 20 min |
+
+Success rate per achievement (%), where they differ by 10 points or more:
+
+| Achievement | Horizon 15 | Horizon 5 |
+|---|---|---|
+| place_table | 68 | 50 |
+| make_wood_pickaxe | 32 | 0 |
+| defeat_zombie | 12 | 30 |
+| collect_stone | 6 | 0 |
+
+**Effect.** The return is almost the same (the difference, 0.18, is far
+inside one standard deviation), but *which* rewards the agent collects
+changes:
+
+- With horizon 5 the agent never makes a wood pickaxe, and places a
+  table less often. These are the longest chains in our results: collect
+  wood several times, place a table, then craft at the table. Their +1
+  comes many steps after the first action, often more than 5 steps.
+  With a 5-step rollout the actor sees that reward only through the
+  critic's value estimate at the end of the rollout, not as an imagined
+  reward.
+- It defeats zombies more often and survives a bit longer (193 vs 176
+  steps). A zombie fight pays off within a few steps (+1 for the kill,
+  no health loss), which a short horizon sees well.
+- The Crafter score (geometric mean of success rates) punishes the 0 %
+  on `make_wood_pickaxe` and `collect_stone`, so it drops more than the
+  return (3.4 % vs 4.3 %).
+- Lower value loss with horizon 5 does not mean a better critic: its
+  targets cover 5 steps, so they are easier to fit.
+- Horizon 5 trains about 40 % faster, because each imagined rollout is
+  3 times shorter.
+
+**Limits.** One seed per setting and 50 episodes. The pickaxe and zombie
+differences are counts of 16 vs 0 and 6 vs 15 episodes, large enough to
+be worth reporting but not tested across seeds. The explanation above
+(short horizon favours quick rewards) is the expected one from how
+imagination training works; we did not test it directly.
 
 ## Comparison with the published result (issue #17)
 
