@@ -53,7 +53,8 @@ EXPERIMENTS.md       every run, including failed ones
 docs/                learning path, glossary, git workflow, architecture, HPC, report
 scripts/             setup check, env snapshot, random agent, issue list,
                      perun.sh (fixed PERUN commands, run from the laptop),
-                     eval_agent.py (checkpoint or random agent on fixed worlds, Task 6)
+                     eval_agent.py (checkpoint or random agent on fixed worlds, Task 6),
+                     openloop.py (world model predicts frames alone, Task 4)
 analysis/            plotting scripts and notebooks;
                      plot_curves.py (return + loss SVGs of one run, Task 3)
 docs/figures/        figures for the report, named after the run ID

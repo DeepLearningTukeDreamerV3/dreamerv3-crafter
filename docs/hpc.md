@@ -94,8 +94,9 @@ checkpoint copy runs in a job through `srun`.
 | `scripts/perun.sh early-ckpt <run-id> <step>` | copy `ckpt` to `ckpt_early_<step>`, in a job |
 | `scripts/perun.sh cancel <jobid>` | `scancel` a job; a run resumes from its last checkpoint (saved every 15 min) |
 | `scripts/perun.sh eval <branch> <eval-id> <run-id> <ckpt\|random> [episodes] [seed]` | pull, then `sbatch slurm/03_eval.sbatch` (Task 6, see below) |
+| `scripts/perun.sh openloop <branch> <openloop-id> <run-id> [ckpt] [episodes]` | pull, then `sbatch slurm/04_openloop.sbatch` (Task 4, see below) |
 
-`smoke`, `submit`, `early-ckpt`, `cancel` and `eval` change the cluster, so they ask y/N.
+`smoke`, `submit`, `early-ckpt`, `cancel`, `eval` and `openloop` change the cluster, so they ask y/N.
 Without a terminal, put `-y` first: `scripts/perun.sh -y smoke main`.
 The cluster clone is only updated with `git pull --ff-only`. Arguments
 with spaces or shell characters are refused. The script gives up after 10 s
@@ -201,3 +202,22 @@ sbatch slurm/03_eval.sbatch <eval-id> <run-id> random            # random agent
 Optional 4th and 5th arguments: episodes (default 50), world seed
 (default 100). Results go to `<logdir>/<eval-id>/eval.jsonl` and
 `summary.json` (mean return, success rate per achievement, Crafter score).
+
+## Open-loop predictions (Task 4)
+
+`slurm/04_openloop.sbatch` runs `scripts/openloop.py` in a GPU job. The
+trained policy plays 10 episodes on fixed worlds. Windows of 64 steps
+are cut from them: the world model sees the first 32 real frames, then
+predicts the next 32 from the actions alone (upstream `agent.report`).
+Login node:
+
+```sh
+sbatch slurm/04_openloop.sbatch <openloop-id> <run-id> ckpt
+```
+
+Optional 4th and 5th arguments: episodes (default 10), world seed
+(default 100). Results go to `<logdir>/<openloop-id>/openloop.json`
+(error per step, and a "copy the last real frame" baseline for scale)
+and `media/openloop.gif`, `media/openloop.png`. `scripts/perun.sh fetch
+<openloop-id>` copies them to `runs/<openloop-id>/`; the dashboard shows
+the images.

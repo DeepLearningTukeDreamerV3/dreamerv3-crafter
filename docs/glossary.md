@@ -72,7 +72,14 @@ Plain-language definitions. Add terms when you meet new ones.
   by the world model and the actor, without touching the real environment.
   Length: `imag_length` (15).
 - **Open-loop prediction** — start from real observations, then predict the
-  future using only actions. Shown as `openloop/*` videos in the logs.
+  future using only actions. Shown as `openloop/*` videos in the logs, and
+  made from a checkpoint by `scripts/openloop.py` (Task 4).
+- **Context** (open loop) — the real frames the world model sees before it
+  predicts alone. `scripts/openloop.py`: first half of each window.
+- **Horizon** (open loop) — how many steps ahead a prediction is. The error
+  usually grows with it.
+- **Mean squared error (MSE)** — average of (predicted − real)² over all
+  pixels, with pixels scaled to 0..1. 0 = identical frames.
 - **Replay buffer** — storage of past real experience used for training.
 - **`train_ratio`** — replayed steps trained per environment step. Crafter
   default: 512.

@@ -16,7 +16,7 @@ Fill this in during week 3. Record real tensor shapes from a run with the
 | Actor (policy) | `upstream/dreamerv3/agent.py:115` `policy` | TODO |
 | Critic (value) | | TODO |
 | Losses | `upstream/dreamerv3/agent.py:137` `train` | TODO |
-| Report / open-loop video | `upstream/dreamerv3/agent.py:247` `report` | TODO |
+| Report / open-loop video | `upstream/dreamerv3/agent.py:247` `report` | Observes the first half of a window, imagines the second half from the real actions, decodes both. `scripts/openloop.py` calls it on a trained checkpoint (Task 4) |
 
 ## Tensors for one batch
 
