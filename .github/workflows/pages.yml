@@ -1,0 +1,43 @@
+# Publish the dashboard (analysis/dashboard.py) to GitHub Pages.
+# Runs on every push to main, so the public page always shows what is
+# merged: runs/, EXPERIMENTS.md, ROADMAP.md, docs/glossary.md.
+# Repo setting needed once: Settings > Pages > Source: GitHub Actions.
+name: Dashboard on GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # "Run workflow" button, to rebuild by hand
+
+permissions:
+  contents: read
+  pages: write      # deploy the site
+  id-token: write   # proves to Pages that this workflow made the site
+
+concurrency:        # one deploy at a time; a newer push wins
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # Standard library only: no pip install needed.
+      - run: python analysis/dashboard.py --site _site
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

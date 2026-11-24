@@ -11,6 +11,7 @@ Where the data comes from (nothing is typed in by hand except PAPER):
 - EXPERIMENTS.md                run registry, run status, colour order
 - ROADMAP.md                    ticked items per week and deliverables
 - PAPER below                   DreamerV3 paper v1, Table M.1
+- docs/glossary.md              the glossary in "How it works"
 
 What it shows: headline numbers; "what the results say", computed from
 the data; training curves of every run, overlaid (tick boxes, hover
@@ -21,16 +22,22 @@ registry. Every chart has a "?" button that explains it.
 Only the standard library. Usage (in Docker or any Python 3):
   python analysis/dashboard.py            # writes dashboard.html
   xdg-open dashboard.html                 # macOS: open, Windows: start
+  python analysis/dashboard.py --site _site   # GitHub Pages build (CI):
+      _site/index.html plus copies of the media files
 """
 import argparse
+import datetime
 import json
 import os
 import re
+import shutil
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 MAX_POINTS = 400   # per curve, keeps the file small and the page fast
 WINDOW = 20        # moving average over episodes
+REPO_URL = "https://github.com/DeepLearningTukeDreamerV3/dreamerv3-crafter"
 MEDIA = {".png", ".gif", ".jpg", ".jpeg", ".webp", ".mp4", ".webm"}
 
 WM = "World model, trained on real data"
@@ -130,6 +137,8 @@ CHARTS = [
              "deliverable 8."},
 ]
 SMOOTHED = {"episode/score", "episode/length"}
+for _c in CHARTS:   # anchor id, e.g. "c-train-loss-image"
+    _c["id"] = "c-" + re.sub(r"[^a-z0-9]+", "-", _c["lines"][0][0].lower())
 
 # DreamerV3 paper, arXiv 2301.04104v1, appendix M, Table M.1 (1M env steps,
 # 10 seeds). The same numbers are in the table of docs/results.md.
@@ -224,6 +233,46 @@ def roadmap(root):
     return [s for s in sections if s["items"]]
 
 
+def glossary(root):
+    """Terms of docs/glossary.md: [{"section", "term", "text"}].
+    Format: "- **Term** (extra) — definition", continued on indented lines."""
+    path = root / "docs" / "glossary.md"
+    if not path.exists():
+        return []
+    terms, section = [], ""
+    for line in path.read_text().splitlines():
+        if line.startswith("## "):
+            section = line[3:].strip()
+        elif line.startswith("- **"):
+            m = re.match(r"- \*\*(.+?)\*\*\s*(.*)", line)
+            terms.append({"section": section, "term": m.group(1), "text": m.group(2)})
+        elif line.startswith("  ") and terms and line.strip():
+            terms[-1]["text"] += " " + line.strip()
+    for t in terms:
+        # "**Return** / **episode score** — sum ...": the part before the
+        # dash belongs to the term, the part after it is the definition.
+        m = re.match(r"(.*?)\s*—\s*(.*)", t["text"])
+        if m:
+            extra = m.group(1).replace("**", "").strip()
+            t["term"] = (t["term"] + " " + extra).strip()
+            t["text"] = m.group(2)
+        t["term"] = t["term"].replace("`", "")
+    return terms
+
+
+def build_stamp(root):
+    """When and from which commit the page was built."""
+    sha = os.environ.get("GITHUB_SHA")
+    if not sha:
+        try:
+            sha = subprocess.run(["git", "-C", str(root), "rev-parse", "HEAD"],
+                                 capture_output=True, text=True, check=True).stdout.strip()
+        except (OSError, subprocess.CalledProcessError):
+            sha = ""
+    now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    return {"time": now, "sha": sha[:7], "url": f"{REPO_URL}/commit/{sha}" if sha else ""}
+
+
 def load(root, out_dir):
     reg_rows = registry(root)
     reg = {r.get("Run ID"): r for r in reg_rows}
@@ -232,7 +281,7 @@ def load(root, out_dir):
     for d in sorted(p for p in (root / "runs").iterdir() if p.is_dir()):
         for f in sorted((d / "media").glob("*")) if (d / "media").is_dir() else []:
             if f.suffix.lower() in MEDIA:
-                media.append({"run": d.name, "name": f.name, "video": f.suffix.lower() in {".mp4", ".webm"},
+                media.append({"path": str(f), "run": d.name, "name": f.name, "video": f.suffix.lower() in {".mp4", ".webm"},
                               "src": os.path.relpath(f, out_dir).replace(os.sep, "/")})
         summary = d / "summary.json"
         if summary.exists():
@@ -380,13 +429,34 @@ th { color: var(--ink2); font-weight: 600; } td.n, th.n { text-align: right; fon
 .items { margin: 4px 0 0; padding-left: 18px; color: var(--ink2); font-size: 12.5px; }
 .items li.done { color: var(--muted); text-decoration: line-through; }
 details summary { cursor: pointer; }
+.intro { max-width: 820px; margin: 10px 0 0; }
+.h3 { font-size: 15px; margin: 22px 0 8px; }
+.flow { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); counter-reset: step; }
+.flow li { background: var(--card); border-radius: 8px; box-shadow: 0 0 0 1px var(--ring); padding: 10px 12px 10px 44px;
+  position: relative; counter-increment: step; color: var(--ink2); font-size: 13px; }
+.flow li::before { content: counter(step); position: absolute; left: 12px; top: 10px; width: 22px; height: 22px;
+  border-radius: 50%; background: var(--s1); color: #fff; font: 600 12px/22px system-ui, sans-serif; text-align: center; }
+.flow li b.t { display: block; color: var(--ink); margin-bottom: 2px; }
+.flow .links { display: block; margin-top: 4px; font-size: 12px; }
+.flow .links a { margin-right: 10px; color: var(--ink2); }
+.search { width: min(100%, 420px); padding: 7px 10px; border-radius: 6px; border: 1px solid var(--axis);
+  background: var(--card); color: var(--ink); font: inherit; margin: 8px 0; }
+#gloss h4 { font-size: 13px; margin: 14px 0 4px; color: var(--ink2); }
+#gloss dl { margin: 0; display: grid; grid-template-columns: minmax(120px, 220px) 1fr; gap: 4px 16px; }
+#gloss dt { font-weight: 600; } #gloss dd { margin: 0; color: var(--ink2); }
+@media (max-width: 560px) { #gloss dl { grid-template-columns: 1fr; } #gloss dd { margin-bottom: 6px; } }
+code { font-size: 12px; background: var(--grid); padding: 0 3px; border-radius: 3px; }
+.docs { color: var(--ink2); padding-left: 18px; } .docs a { color: var(--ink); }
 .media { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
 .media img, .media video { width: 100%; image-rendering: pixelated; border-radius: 4px; }
 </style></head>
 <body><main>
 <h1>DreamerV3 on Crafter: runs and results</h1>
 <p class="sub">Generated by <code>analysis/dashboard.py</code> from <code>runs/</code>, <code>EXPERIMENTS.md</code> and <code>ROADMAP.md</code>. Re-run it after each fetch. Click or hover <b>?</b> for what a chart means.</p>
-<nav><a href="#findings">What the results say</a><a href="#training">Training curves</a><a href="#eval">Evaluation</a><a href="#achievements">Achievements</a><a href="#frames">Frames</a><a href="#objectives">Objectives</a><a href="#registry">Run registry</a></nav>
+<p class="sub" id="stamp"></p>
+<nav><a href="#how">How it works</a><a href="#findings">What the results say</a><a href="#training">Training curves</a><a href="#eval">Evaluation</a><a href="#achievements">Achievements</a><a href="#frames">Frames</a><a href="#objectives">Objectives</a><a href="#registry">Run registry</a></nav>
+<p class="intro">A university group project (TUKE, MSc): we train <b>DreamerV3</b>, an agent that learns a model of its world and practises inside that model, on <b>Crafter</b>, a 2D survival game with 22 achievements. Then we check what the world model learned. New here? Start with <a href="#how">How it works</a>.</p>
 <div class="tiles" id="tiles"></div>
 <h2 id="findings">What the results say</h2>
 <p class="sub">Computed from the data on this page; numbers update on each rebuild. Single training seed: treat differences of a few tenths as noise.</p>
@@ -407,6 +477,18 @@ details summary { cursor: pointer; }
 <h2 id="objectives">Objectives (ROADMAP.md)</h2>
 <p class="sub">Ticked checkboxes in <code>ROADMAP.md</code>. A tick is only as current as the file: tick items in the PR that finishes them.</p>
 <div class="scroll" style="margin-top:10px"><table id="road"></table></div>
+<h2 id="how">How it works: concepts and process</h2>
+<p class="sub">The ideas behind every number on this page, in the order they happen. Links jump to the matching chart.</p>
+<h3 class="h3">1. How DreamerV3 learns (one training loop)</h3>
+<ol class="flow" id="loop"></ol>
+<h3 class="h3">2. How we run the project</h3>
+<ol class="flow" id="process"></ol>
+<h3 class="h3">3. Glossary</h3>
+<p class="sub">From <code>docs/glossary.md</code>. Type to filter.</p>
+<input id="gq" class="search" type="search" placeholder="Filter terms, e.g. KL, posterior, SLURM" aria-label="Filter glossary">
+<div id="gloss"></div>
+<h3 class="h3">4. Read more</h3>
+<ul class="docs" id="docs"></ul>
 <h2 id="registry">Run registry (EXPERIMENTS.md)</h2>
 <div class="scroll"><table id="reg"></table></div>
 </main>
@@ -609,7 +691,7 @@ function drawCharts() {
   for (const chart of D.charts) {
     if (chart.group !== group) { group = chart.group; el('h3', {text: group, style: 'margin:18px 0 8px;font-size:14px'}, box);
       grid = el('div', {class: 'grid'}, box); }
-    const card = el('div', {class: 'card'}, grid);
+    const card = el('div', {class: 'card', id: chart.id}, grid);
     cardTitle(card, chart.title, chart.info);
     lineChart(card, chart, xmax);
   }
@@ -726,6 +808,72 @@ if (D.roadmap.length) {
   });
 }
 
+// How it works. Text with **bold** and `code`, built as DOM nodes (no innerHTML).
+function rich(parent, s) {
+  s.split(/(\*\*[^*]+\*\*|`[^`]+`)/).forEach(part => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) el('b', {text: part.slice(2, -2)}, parent);
+    else if (part.startsWith('`') && part.endsWith('`') && part.length > 2) el('code', {text: part.slice(1, -1)}, parent);
+    else if (part) parent.appendChild(document.createTextNode(part));
+  });
+}
+const chartOf = key => D.charts.find(c => c.lines.some(l => l[0] === key));
+function steps(id, list) {
+  const ol = document.getElementById(id);
+  list.forEach(([title, text, links = []]) => {
+    const li = el('li', {}, ol); el('b', {class: 't', text: title}, li); rich(li, text);
+    if (links.length) { const s = el('span', {class: 'links'}, li);
+      links.forEach(([label, href]) => { const c = href.startsWith('#') ? null : chartOf(href);
+        el('a', {href: c ? '#' + c.id : href, text: label + ' →'}, s); }); }
+  });
+}
+steps('loop', [
+  ['Act in the real game', 'The **actor** (policy network) picks one of 17 actions from the model state. Crafter returns a 64×64 image, a reward and whether the episode ended.',
+    [['Episode return', 'episode/score'], ['Episode length', 'episode/length']]],
+  ['Store experience', 'Every step goes into the **replay buffer**. Training samples from it: 16 sequences of 64 steps per batch.'],
+  ['Learn the world model', 'The **encoder** turns each image into a vector. The **RSSM** keeps a deterministic state (8192 numbers) and a stochastic state (32 categorical variables of 64 classes). The **posterior** sees the frame; the **prior** predicts it without seeing it. Heads predict the image (decoder), the reward and whether the episode continues.',
+    [['image loss', 'train/loss/image'], ['dyn KL', 'train/loss/dyn'], ['uncertainty', 'train/rep_ent']]],
+  ['Imagine', 'From each replayed state (16 × 64 = 1024 starts) the model rolls forward **15 steps** with the prior only, no real frames, choosing actions with the actor. Heads predict reward and continuation for each imagined step.',
+    [['real vs imagined reward', 'train/rew']]],
+  ['Learn actor and critic in imagination', 'The **critic** estimates future reward. The **λ-return** mixes imagined rewards with critic values over the 15 steps (discount 0.997). The actor raises the probability of actions with positive **advantage** (REINFORCE) and keeps some **entropy** so it still explores.',
+    [['entropy', 'train/ent/action'], ['|advantage|', 'train/adv_mag'], ['critic loss', 'train/loss/value']]],
+  ['Repeat', '**Train ratio 512**: for each real env step, 512 replayed steps are trained on. That is why the baseline runs at about 16 env steps/s on an H200.',
+    [['speed', 'fps/policy']]],
+  ['Evaluate', 'The trained agent, an early checkpoint and a random agent play the same 50 worlds. We count which of the 22 **achievements** each unlocks and compute the **Crafter score** (a geometric mean of success rates), the paper\'s metric.',
+    [['Evaluation', '#eval'], ['Achievements', '#achievements']]],
+]);
+steps('process', [
+  ['One software environment', 'Everything runs in one **Docker** image (Python 3.11, JAX), so results do not depend on whose laptop ran them. `scripts/check_local.py` checks it.'],
+  ['GPU cluster (PERUN)', 'Real training runs on TUKE\'s **PERUN** cluster. The Docker image becomes an **Apptainer** file; jobs are queued with **SLURM** (`slurm/*.sbatch`). Nothing heavy runs on the shared login node; a laptop helper script sends only a fixed set of commands.'],
+  ['Staged tests', 'Local check → interactive GPU test → **smoke test** (debug config, tiny model, about 11 min) → production run. A smoke run proves the pipeline works; it does not learn.'],
+  ['Registered experiments', 'Every run gets an ID `<date>-<name>-s<seed>` and a row in `EXPERIMENTS.md` before it starts; failed runs stay listed. A sensitivity experiment changes exactly one flag (ours: `--agent.imag_length 5` instead of 15).', [['Run registry', '#registry']]],
+  ['Logs, not checkpoints, in git', 'DreamerV3 writes `metrics.jsonl` (all metrics), `scores.jsonl`, `config.yaml`. Small files are copied to `runs/<run-id>/`; checkpoints (GBs) stay on the cluster and are saved every 15 min, so a stopped run can resume.'],
+  ['Analysis', '`analysis/plot_curves.py` makes the report figures, `scripts/eval_agent.py` the evaluations, `analysis/dashboard.py` this page. Every change goes through a pull request; merging to `main` rebuilds this page.'],
+]);
+// Glossary
+const gq = document.getElementById('gq'), gbox = document.getElementById('gloss');
+function drawGloss() {
+  const q = gq.value.trim().toLowerCase(); gbox.replaceChildren();
+  let section = null, dl = null, n = 0;
+  D.glossary.filter(g => !q || (g.term + ' ' + g.text).toLowerCase().includes(q)).forEach(g => {
+    if (g.section !== section) { section = g.section; el('h4', {text: section}, gbox); dl = el('dl', {}, gbox); }
+    el('dt', {text: g.term}, dl); rich(el('dd', {}, dl), g.text); n++;
+  });
+  if (!n) el('p', {class: 'sub', text: D.glossary.length ? 'No term matches.' : 'docs/glossary.md not found.'}, gbox);
+}
+gq.addEventListener('input', drawGloss); drawGloss();
+// Docs links and build stamp
+const docs = document.getElementById('docs');
+[['README.md', 'start page: setup, layout, commands'], ['ROADMAP.md', '8-week plan and deliverables'],
+ ['docs/learning-path.md', 'what to read, in order'], ['docs/architecture.md', 'DreamerV3 code map, losses, imagination'],
+ ['docs/glossary.md', 'all terms'], ['docs/hpc.md', 'PERUN, SLURM, Apptainer'],
+ ['EXPERIMENTS.md', 'every run'], ['docs/git-workflow.md', 'branches and pull requests']].forEach(([f, d]) => {
+  const li = el('li', {}, docs); el('a', {href: `${D.repo}/blob/main/${f}`, text: f}, li);
+  li.appendChild(document.createTextNode(' — ' + d)); });
+const stamp = document.getElementById('stamp');
+stamp.appendChild(document.createTextNode(`Built ${D.built.time}`));
+if (D.built.sha) { stamp.appendChild(document.createTextNode(' from commit ')); el('a', {href: D.built.url, text: D.built.sha}, stamp); }
+stamp.appendChild(document.createTextNode(' · ')); el('a', {href: D.repo, text: 'repository'}, stamp);
+
 // Registry table
 const reg = document.getElementById('reg');
 if (D.registry.length) {
@@ -743,11 +891,24 @@ def main():
     ap.add_argument("--root", type=Path, default=ROOT,
                     help="folder with runs/, EXPERIMENTS.md, ROADMAP.md (default: this repo)")
     ap.add_argument("--out", type=Path, default=ROOT / "dashboard.html")
+    ap.add_argument("--site", type=Path,
+                    help="write <site>/index.html and copy the media files next to it (GitHub Pages)")
     args = ap.parse_args()
-    out = args.out.resolve()
+    out = (args.site / "index.html" if args.site else args.out).resolve()
+    out.parent.mkdir(parents=True, exist_ok=True)
     runs, evals, reg, media = load(args.root, out.parent)
+    for m in media:
+        if args.site:   # the site cannot reach ../runs, so copy the file in
+            dest = out.parent / "media" / m["run"] / m["name"]
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(m["path"], dest)
+            m["src"] = f"media/{m['run']}/{m['name']}"
+        del m["path"]
+    if args.site:
+        (out.parent / ".nojekyll").write_text("")   # serve files as they are
     data = {"runs": runs, "evals": evals, "paper": PAPER, "registry": reg,
-            "charts": CHARTS, "media": media, "roadmap": roadmap(args.root)}
+            "charts": CHARTS, "media": media, "roadmap": roadmap(args.root),
+            "glossary": glossary(args.root), "built": build_stamp(args.root), "repo": REPO_URL}
     # "</" inside the JSON would end the <script> tag early.
     text = json.dumps(data, separators=(",", ":")).replace("</", "<\\/")
     out.write_text(PAGE.replace("__DATA__", text))

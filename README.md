@@ -9,6 +9,10 @@ We train [DreamerV3](https://github.com/danijar/dreamerv3) on the
 [Crafter](https://github.com/danijar/crafter) game, then look inside it:
 what it predicts, how it imagines, where it fails.
 
+**Results dashboard:** https://deeplearningtukedreamerv3.github.io/dreamerv3-crafter/
+(rebuilt from `main` on every merge by `.github/workflows/pages.yml`; local copy:
+`python analysis/dashboard.py`, then open `dashboard.html`).
+
 ## Start here (new member, in this order)
 
 1. **This page**, to the end.
@@ -63,7 +67,7 @@ slurm/               SLURM job scripts for the PERUN cluster
 Dockerfile, compose.yaml, DOCKER.md   Docker setup
 .env.example         defaults for compose; setup.sh copies it to .env
 .devcontainer/       dev container for VS Code, Codespaces, PyCharm Pro
-.github/             CI (large file check), PR template, CODEOWNERS
+.github/             CI (large file check, dashboard on GitHub Pages), PR template, CODEOWNERS
 LICENSE              MIT, from upstream
 upstream/            danijar/dreamerv3 @ e3f0224, do not edit before M1
   dreamerv3/         agent, world model (rssm.py), configs.yaml
