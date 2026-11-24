@@ -82,8 +82,8 @@ committed.
       deterministic and stochastic latent state, predicted reward,
       continuation, actor output, critic value. Fill `docs/architecture.md`.
       Done with `analysis/trace_batch.py` (measured shapes, baseline config).
-- [ ] Draw the original data-flow diagram. Mark where real data stops and
-      imagination begins.
+- [x] Draw the original data-flow diagram. Mark where real data stops and
+      imagination begins. Mermaid diagram in `docs/architecture.md`.
 - [ ] If a second GPU is free: launch seeds 1 and 2 of the baseline.
 
 **Done when:** the team has reviewed `docs/architecture.md` and the diagram.
