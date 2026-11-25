@@ -23,7 +23,7 @@ import math
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BLUE, ORANGE = "#2a78d6", "#eb6834"  # validated pair (dataviz palette)
+BLUE, ORANGE, GREEN = "#2a78d6", "#eb6834", "#1baf7a"  # same as the first dashboard colours
 
 # (metrics key, title). Grouped: world model first, then actor-critic.
 LOSSES = [

@@ -101,7 +101,7 @@ analysis/            plotting scripts and notebooks;
                      trace_batch.py (tensor shapes of one batch, Task 2),
                      dashboard.py (one offline HTML page: runs, evals, findings, roadmap),
                      failures.py (open-loop error growth and reward errors, Task 8),
-                     compare_runs.py (two runs, or seed means, on the same charts, Task 7),
+                     compare_runs.py (two or three runs, or seed means, on the same charts, Task 7),
                      gpu_usage.py (GPU use and speed of PERUN runs, deliverable 8)
 docs/figures/        figures for the report, named after the run ID
 runs/                small logs of finished runs (metrics, scores, config)

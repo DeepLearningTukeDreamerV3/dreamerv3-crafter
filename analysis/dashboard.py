@@ -303,13 +303,21 @@ def load(root, out_dir):
         if summary.exists():
             s = json.loads(summary.read_text())
             agent = s["agent"]
-            if agent == "random":
-                label, rank = "Random agent", 0
-            elif "ckpt_early" in agent:
-                label, rank = f"Early checkpoint ({agent.split('/')[-1]})", 1
-            else:
-                label, rank = f"Trained ({agent.split('/')[-2]})", 2
+            # Step of the checkpoint, from the registry row: "(~495k steps)".
+            m = re.search(r"\(~([0-9.–k]+M?) steps", reg.get(d.name, {}).get("Configs + flags", ""))
+            at = m.group(1) if m else "?"
+            kilo = float(re.findall(r"[0-9.]+", at)[-1]) if m else 0   # 208–210k -> 210
+            run, label, rank, horizon = "", "Random agent", 0, 0
+            if agent != "random":
+                run = agent.split("/")[-2]
+                # Horizon from the run's registry row; no flag = the default, 15.
+                m = re.search(r"imag_length (\d+)", reg.get(run, {}).get("Configs + flags", ""))
+                horizon = int(m.group(1)) if m else 15
+                label = f"Horizon {horizon} {run.split('-')[-1]}, ~{at}"
+                # ckpt_early_500000 is a budget milestone, not the Task 6 early agent.
+                rank = 1 if 0 < kilo < 100 else 2
             evals.append({"id": d.name, "label": label, "order": rank,
+                          "run": run, "horizon": horizon, "kilo": kilo,
                           "episodes": s["episodes"], "seed": s["seed"],
                           "score": s["crafter_score"], "ret": s["return_mean"],
                           "ret_std": s["return_std"], "rates": s["success_rates"]})
@@ -355,17 +363,18 @@ def load(root, out_dir):
             "fps": mean([r["fps/policy"] for r in rows if "fps/policy" in r]),
         }
         info = reg.get(d.name, {})
-        runs.append({"id": d.name, "step": max(r["step"] for r in rows),
+        # Same rule as for the evaluations: no imag_length flag = default 15.
+        m = re.search(r"imag_length (\d+)", info.get("Configs + flags", ""))
+        runs.append({"id": d.name, "horizon": int(m.group(1)) if m else 15, "step": max(r["step"] for r in rows),
                      "status": info.get("Status", "not in EXPERIMENTS.md"),
                      "config": info.get("Configs + flags", ""),
                      "notes": info.get("Notes", ""),
                      "debug": "debug" in info.get("Configs + flags", ""),
                      "order": order.get(d.name, len(order)),
                      "series": series, "stats": stats})
-    # Colour follows the registry row, so fetching an older run later does
-    # not repaint the others.
+    # Registry order, so fetching an older run later does not reorder the others.
     runs.sort(key=lambda r: (r["order"], r["id"]))
-    evals.sort(key=lambda e: e["order"])
+    evals.sort(key=lambda e: (e["order"], e["kilo"], e["horizon"], e["run"]))
     return runs, evals, reg_rows, media, openloops
 
 
@@ -490,7 +499,7 @@ dialog.zoom img { display: block; max-width: none; image-rendering: pixelated; }
 <p class="intro">A university group project (TUKE, MSc): we train <b>DreamerV3</b>, an agent that learns a model of its world and practises inside that model, on <b>Crafter</b>, a 2D survival game with 22 achievements. Then we check what the world model learned. New here? Start with <a href="#t-how">How it works</a>.</p>
 <div class="tiles" id="tiles"></div>
 <h2 id="findings">What the results say</h2>
-<p class="sub">Computed from the data on this page; numbers update on each rebuild. Single training seed: treat differences of a few tenths as noise.</p>
+<p class="sub">Computed from the data on this page; numbers update on each rebuild. At most 3 training seeds per setting: treat small differences as noise.</p>
 <div class="find" id="find" style="margin-top:10px"></div>
 </section>
 <section class="tab" id="t-training">
@@ -586,15 +595,18 @@ function cardTitle(card, title, text) {
 }
 const sectionInfo = (id, text) => info(document.getElementById(id), text);
 
-// Colour follows the run (registry order), never which runs are ticked.
-// Real runs take the first slots, debug runs the next ones.
-[...D.runs.filter(r => !r.debug), ...D.runs.filter(r => r.debug)].forEach((r, i) => r.color = `var(--s${i % 8 + 1})`);
+// Colour follows the setting (imagination horizon), never which runs are
+// ticked. Seeds of a setting share a colour; the tooltip names each run.
+const SETTING = {15: 'var(--s1)', 5: 'var(--s2)', 30: 'var(--s3)'};
+D.runs.forEach(r => r.color = r.debug ? 'var(--muted)' : SETTING[r.horizon] || 'var(--s4)');
 const shown = new Set(D.runs.filter(r => !r.debug).map(r => r.id));
 const SKIP = 10000;   // the first updates have huge losses that flatten the rest
 let skip = true;
-const evalOf = rank => D.evals.find(e => e.order === rank);
+// Trained agent = the longest-trained horizon 15 evaluation of seed 0.
+const evalOf = rank => rank < 2 ? D.evals.find(e => e.order === rank)
+  : D.evals.filter(e => e.order === 2 && e.horizon === 15 && e.run.endsWith('-s0')).sort((a, b) => b.kilo - a.kilo)[0];
 // The findings describe the run behind the 'Trained' evaluation, else the first real run.
-const main = D.runs.find(r => evalOf(2) && evalOf(2).label.includes(r.id)) || D.runs.find(r => !r.debug);
+const main = D.runs.find(r => evalOf(2) && evalOf(2).run === r.id) || D.runs.find(r => !r.debug);
 
 // Tiles
 const tiles = document.getElementById('tiles');
@@ -619,14 +631,15 @@ const pct = v => v.toFixed(1) + ' %';
     ...(early ? [[pct(early.score)], ' at the early checkpoint: the score grows with training. '] : []),
     'Return ', [tr.ret.toFixed(2)], ' vs ', [rnd.ret.toFixed(2)], '. The return ranges over episodes overlap (± ',
     tr.ret_std.toFixed(1), '), so the average is the claim, not each episode.']);
-  if (tr && main) finding('2. Far from the paper: shorter budget, one seed', [
-    'Paper DreamerV3 at 1M steps: ', [pct(dv3.score)], '. We stopped at ', [main.step.toLocaleString('en')],
-    ' steps (', [Math.round(main.step / 1e4) + ' %'], ' of 1M), one seed. Our score is close to the paper\'s PPO at 1M (',
-    pct(ppo.score), '). Mean training return of the last 200 episodes: ', [fmt(main.stats.ret_recent)], ' vs ',
-    [fmt(main.stats.ret_before)], ' for the 200 before',
-    main.stats.ret_recent > main.stats.ret_before + 0.2 ? ': still rising when we stopped, so our score is a lower bound. '
-      : ': nearly flat at the end, so more steps alone may give only slow gains. ',
-    'Other differences: evaluation protocol, seeds, code version (docs/results.md).']);
+  if (tr) {
+    // Same setting and budget, all seeds: mean of their Crafter scores.
+    const same = D.evals.filter(e => e.order === 2 && e.horizon === 15 && Math.abs(e.kilo - tr.kilo) < 10);
+    const avg = same.reduce((a, e) => a + e.score, 0) / same.length;
+    finding('2. Compared with the paper', [
+      'Horizon 15 (default) at ~', [tr.kilo + 'k'], ' steps: ', [pct(avg)], ' mean of ', [String(same.length)], ' seed(s): ',
+      same.map(e => pct(e.score)).join(', '), '. Paper DreamerV3 at 1M steps: ', [pct(dv3.score)], ', PPO ', [pct(ppo.score)],
+      '. Other differences: evaluation protocol, number of seeds, code version (docs/results.md).']);
+  }
   if (tr) {
     const names = Object.keys(tr.rates), good = names.filter(n => tr.rates[n] >= 0.5),
       never = names.filter(n => D.evals.every(e => e.rates[n] === 0));
@@ -634,18 +647,20 @@ const pct = v => v.toFixed(1) + ' %';
       'Reliable (≥ 50 % of episodes): ', [good.map(n => n.replaceAll('_', ' ')).join(', ')], '. ',
       'Sometimes: wood pickaxe ', [Math.round((tr.rates.make_wood_pickaxe || 0) * 100) + ' %'], ', stone ',
       [Math.round((tr.rates.collect_stone || 0) * 100) + ' %'], '. ', [String(never.length)],
-      ' of 22 achievements are never unlocked by any agent: the tool chain (stone pickaxe → coal, iron → diamond) is not reached yet.']);
+      ' of 22 achievements are never unlocked by any agent.']);
   }
+  // Open-loop test of the same run, latest checkpoint (last in date order).
+  const ol = main && D.openloop.filter(o => o.run === main.id).at(-1);
   if (main && main.stats.imag_rew != null) {
     const s = main.stats, ratio = s.imag_rew / s.real_rew;
-    finding('4. The world model sees well but is optimistic about reward', [
+    finding(ratio > 1.1 ? '4. The world model sees well but is optimistic about reward' : '4. World model: images and reward', [
       'Image loss fell from ', [fmt(s.image_first)], ' to ', [fmt(s.image_last)],
       ': it reconstructs frames well. The dyn KL settled at ', [fmt(s.dyn_last)], ' nats, above the 1-nat floor, so next-step prediction still has error. ',
       'Imagined reward per step ', [s.imag_rew.toFixed(3)], ' vs real ', [s.real_rew.toFixed(3)], ' (',
-      [ratio.toFixed(1) + '×'], '): the actor partly trains on rewards that do not happen. ',
-      ...(D.openloop.length && D.openloop[0].rew_sum_real
-        ? ['Open loop (World model tab) agrees: over the predicted steps, reward ', [fmt(D.openloop[0].rew_sum_pred)],
-           ' vs real ', [fmt(D.openloop[0].rew_sum_real)], ' per window. Details: docs/failures.md.']
+      [ratio.toFixed(1) + '×'], ratio > 1.1 ? '): the actor partly trains on rewards that do not happen. ' : '). ',
+      ...(ol && ol.rew_sum_real
+        ? ['Open loop (World model tab): over the predicted steps, reward ', [fmt(ol.rew_sum_pred)],
+           ' vs real ', [fmt(ol.rew_sum_real)], ' per window. Details: docs/failures.md.']
         : ['To test in Task 4 (open-loop) and Task 8.'])]);
     finding('5. The policy became decisive; episodes did not get longer', [
       'Actor entropy ', [fmt(s.ent_first)], ' → ', [fmt(s.ent_last)], ' nats (2.83 = random). ',
