@@ -210,6 +210,16 @@ Optional 4th and 5th arguments: episodes (default 50), world seed
 (default 100). Results go to `<logdir>/<eval-id>/eval.jsonl` and
 `summary.json` (mean return, success rate per achievement, Crafter score).
 
+If the evaluation ID contains `gameplay`, the job also records the first
+5 episodes: `media/world<N>.mp4` and `media/gameplay.json`. Use 5
+episodes for these. From the laptop, then build the comparison page:
+
+```sh
+scripts/perun.sh eval <branch> <date>-gameplay-<name>-s0 <run-id> <ckpt|random> 5 100
+scripts/perun.sh fetch <date>-gameplay-<name>-s0
+python analysis/gameplay.py
+```
+
 ## Open-loop predictions (Task 4)
 
 `slurm/04_openloop.sbatch` runs `scripts/openloop.py` in a GPU job. The

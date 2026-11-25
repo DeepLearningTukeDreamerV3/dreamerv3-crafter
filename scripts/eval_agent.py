@@ -19,6 +19,9 @@ Examples (in Docker or in a SLURM job, never on the PERUN login node):
   python scripts/eval_agent.py --run-dir <logdir>/<run-id> --random \\
       --episodes 50 --seed 100 --out runs/<eval-id>/eval.jsonl
 
+--video N also records the first N episodes as videos, in media/ next to
+--out (scripts/gameplay_recorder.py). It does not change the episodes.
+
 --run-dir is a training logdir: its config.yaml defines the network.
 --ckpt is a folder inside it (`ckpt`, or `ckpt_early_<step>`); the
 checkpoint that its `latest` file names is loaded.
@@ -58,6 +61,8 @@ def main():
                       help='world seed; use the same one for every agent')
   parser.add_argument('--platform', default=None,
                       help='override jax.platform (cpu or cuda)')
+  parser.add_argument('--video', type=int, default=0,
+                      help='record the first N episodes as videos')
   parser.add_argument('--out', type=pathlib.Path, required=True)
   args = parser.parse_args()
 
@@ -78,12 +83,20 @@ def main():
     cp.agent = agent
     cp.load(elements.Path(path), keys=['agent'])
 
+  raw = {}  # the crafter.Env inside the wrappers, for the recorder
+
   # logs=True adds log/achievement_<name> counters to each observation.
   def make_env():
     env = crafter.Crafter(
         'reward', size=tuple(config.env.crafter.size), logs=True,
         seed=args.seed)
+    raw['env'] = env._env
     return dmain.wrap_env(env, config)
+
+  recorder = None
+  if args.video:
+    from gameplay_recorder import Recorder
+    recorder = Recorder(args.out.parent / 'media', args.video)
 
   lines = []
   current = {'score': 0.0, 'length': 0}
@@ -93,6 +106,8 @@ def main():
       current.update(score=0.0, length=0)
     current['score'] += float(tran['reward'])
     current['length'] += 1
+    if recorder:
+      recorder.step(raw['env'], tran)
     if tran['is_last']:
       unlocked = {
           k[len('log/achievement_'):]: int(tran[k] > 0)

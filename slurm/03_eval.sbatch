@@ -9,6 +9,8 @@
 #   sbatch slurm/03_eval.sbatch 20261124-eval-random 20261123-baseline-s0 random
 # <run-id> is the training run whose config.yaml defines the network
 # (for random: only the env settings are used).
+# If <eval-id> contains "gameplay", the first 5 episodes are also recorded as
+# videos (media/world<N>.mp4 and media/gameplay.json).
 # Results: <logdir>/<eval-id>/eval.jsonl and summary.json.
 #SBATCH --job-name=dreamer-eval
 #SBATCH --partition=gpu_short
@@ -33,10 +35,13 @@ bash scripts/env_snapshot.sh "$EVAL_ID"
 
 if [ "$CKPT" = random ]; then AGENT=(--random); else AGENT=(--ckpt "$CKPT"); fi
 
+case "$EVAL_ID" in *gameplay*) VIDEO=5 ;; *) VIDEO=0 ;; esac
+
 dreamer_exec python scripts/eval_agent.py \
   --run-dir "/logdir/$RUN_ID" \
   "${AGENT[@]}" \
   --episodes "$EPISODES" \
   --seed "$SEED" \
   --platform cuda \
+  --video "$VIDEO" \
   --out "/logdir/$EVAL_ID/eval.jsonl"

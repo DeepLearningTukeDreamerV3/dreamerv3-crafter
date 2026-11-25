@@ -11,6 +11,9 @@ Total: about 13 minutes, with 2 minutes of buffer for questions.
 
 - Open in browser tabs: `docs/report/report.md` on GitHub (the mermaid
   diagram renders there), the open-loop GIFs and the figures below.
+- Build the gameplay page (`python analysis/gameplay.py`) and open
+  `gameplay.html`. It works offline. Play the world you will show once,
+  so you know where to pause.
 - Optional live part: start the CPU debug run
   (`docker compose --profile cpu up train-cpu`) 5 minutes before and show
   its logs in `docker compose up viewer` (http://localhost:8000). It
@@ -29,7 +32,7 @@ Total: about 13 minutes, with 2 minutes of buffer for questions.
 | 3:00–6:00 | 3. Inside the model | Mermaid diagram, `docs/report/report.md` section 3.3; table of six terms (3.1) | Encoder turns a frame into a token. RSSM: `deter` (memory, 8192) + `stoch` (32×64 categories). Posterior uses the frame, prior does not. Reward, continue, actor and critic heads read the 10240-number feature. Point at `sg`: real data stops, imagination begins. |
 | 6:00–7:30 | 4. Real vs imagined | `docs/figures/20261123-baseline-s0-imagination.svg`; report section 4 table | World model learns only from replayed real frames. Actor and critic learn only from 15-step imagined rollouts, 1024 per training step. Imagined reward per step was 1.6× too high at 213k, matches the real one at 495k. |
 | 7:30–9:30 | 5. Can it predict? | `runs/20261124-openloop-s0/media/openloop.gif`, then `docs/figures/20261124-openloop-s0-failures.svg` | 32 real frames, then 32 predicted from actions only. Layout and player stay; trees and cows fade. Beats "copy last frame" from step 7. Reward: false alarms at 213k, misses at 495k, health losses never foreseen. |
-| 9:30–11:30 | 6. Results | `docs/figures/20261124-imag5-s0-vs-20261123-baseline-s0-3seeds.svg`; evaluation table (report 7.2) | Random 1.4 %, early 2.7 %, 213k 4.3 %, 495k 11.3 ± 4.9 % (paper 14.5 % at 1M). Two seeds at paper level, one stuck before stone tools. Horizon 5: ahead early, more zombies, almost no furnace; means overlap at 495k. |
+| 9:30–11:30 | 6. Results | `gameplay.html` for under a minute (one world at 4×: same start, one panel per training stage); then `docs/figures/20261124-imag5-s0-vs-20261123-baseline-s0-3seeds.svg`; evaluation table (report 7.2) | Random 1.4 %, early 2.7 %, 213k 4.3 %, 495k 11.3 ± 4.9 % (paper 14.5 % at 1M). Two seeds at paper level, one stuck before stone tools. Horizon 5: ahead early, more zombies, almost no furnace; means overlap at 495k. |
 | 11:30–12:30 | 7. How we ran it | `docs/figures/gpu-usage.svg`; staged-workflow table (report 5.2) | Local test, interactive, smoke, production. Smoke and first open-loop job each found a GPU-only bug. One H200 per run, GPU busy 87–89 %, ~9 h per 500k run, ~50 GPU-hours. |
 | 12:30–13:00 | 8. Conclusion | Report section 10 | Learns; real and imagined data are separate in code and logs; model is good short-term, weak on rewards long-term; horizon trades quick vs long chains. Next: same-episode comparison, deaths in open loop, more seeds, 1M steps. |
 
