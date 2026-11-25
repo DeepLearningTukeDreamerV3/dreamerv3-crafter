@@ -4,8 +4,9 @@ One page to understand the whole project: what we did, how, why, what
 we found, and what is left. For the details, follow the links. Terms in
 *italics* are in `docs/glossary.md`.
 
-State on 2026-11-25: all experiments are done. What remains is writing
-(report, demo, GPU evidence) and a fresh-clone check.
+State on 2026-11-25: all experiments are done, the fresh-clone check
+passes, and the final report is in `docs/report/report.md`. What remains
+is the demo outline and a final README pass.
 
 ## 1. Goal
 
@@ -253,7 +254,7 @@ Full list: `docs/failures.md`, `EXPERIMENTS.md`.
 | 8 | SLURM scripts and GPU execution evidence | done (`docs/gpu-evidence.md`: job IDs, wall-clock, ~88 % GPU use) | – |
 | 9 | Error analysis with failure cases | done (`docs/failures.md`, 213k and 495k) | turn into the report section |
 | 10 | Reproducible repository with README | mostly (fresh clone passes) | final README pass |
-| 11 | Final technical report | not started | write in `docs/report/` from `docs/results.md`, `docs/failures.md`, `docs/architecture.md`; cite one general and one robotics world-model survey |
+| 11 | Final technical report | done (`docs/report/report.md`) | team reads it and the cited surveys (Ding et al., Hou et al.) |
 | 12 | 10–15 min demo | not started | game footage, open-loop GIF, results; rehearse |
 
 Also open: old PRs #38 and #39, issue #1, and whether to commit
@@ -267,6 +268,7 @@ Also open: old PRs #38 and #39, issue #1, and whether to commit
 | Every run, job ID, commit | `EXPERIMENTS.md` |
 | Model, shapes, losses | `docs/architecture.md` |
 | Failure cases | `docs/failures.md` |
+| Final report | `docs/report/report.md` |
 | Cluster how-to | `docs/hpc.md` |
 | Words | `docs/glossary.md` |
 | Plan and checkboxes | `ROADMAP.md` |

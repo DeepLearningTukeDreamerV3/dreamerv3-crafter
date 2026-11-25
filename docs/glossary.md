@@ -22,6 +22,9 @@ Plain-language definitions. Add terms when you meet new ones.
   probabilities.
 - **One-hot** — a vector of zeros with a single 1 that marks the chosen
   class.
+- **Two-hot** — how DreamerV3's reward head and critic output a number:
+  a distribution over 255 fixed bins, where the target value is split
+  between the two nearest bins. Works for small and large values alike.
 - **bfloat16** — 16-bit floating-point number. Half the memory of
   float32, faster on GPU, less precise. DreamerV3 computes in it.
 - **Batch** (`B`, `batch_size`) and **sequence length** (`T`,

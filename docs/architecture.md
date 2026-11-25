@@ -234,16 +234,18 @@ world-model losses). Bottom row: imagination side. Values from
 `runs/20261123-baseline-s0/metrics.jsonl`, mean of the first 3 vs the
 last 10 log lines:
 
-| Metric (`train/...`) | Start (~3k steps) | End (~213k) | Reading |
-|---|---|---|---|
-| `ent/action` actor entropy | 1.18 | 0.19 | Uniform over 17 actions would be ln 17 = 2.83 nats. The actor is almost deterministic in imagination at the end |
-| `val` critic value | 1.33 | 1.66 | Expected return rises, like the real return (2.0 → 4.5 per episode) |
-| `adv_mag` \|advantage\| | 0.081 | 0.034 | Imagined actions are rarely much better than the critic expects: the actor has settled |
-| `weight` | 0.93 | 0.95 | Over 16 imagined steps the model rarely predicts the end of the episode |
-| `rew` imagined reward per step | 0.036 | 0.035 | Real: 4.45 / 199 ≈ 0.022 per step (last 100 training episodes) |
+| Metric (`train/...`) | Start (~3k steps) | ~213k | End (~495k) | Reading |
+|---|---|---|---|---|
+| `ent/action` actor entropy | 1.18 | 0.19 | 0.28 | Uniform over 17 actions would be ln 17 = 2.83 nats. The actor is almost deterministic in imagination |
+| `val` critic value | 1.33 | 1.65 | 2.43 | Expected return rises, like the real return (2.0 → 4.5 → 9.3 per episode) |
+| `adv_mag` \|advantage\| | 0.081 | 0.034 | 0.029 | Imagined actions are rarely much better than the critic expects: the actor has settled |
+| `weight` | 0.93 | 0.95 | 0.95 | Over 16 imagined steps the model rarely predicts the end of the episode |
+| `rew` imagined reward per step | 0.036 | 0.035 | 0.047 | Real: 0.022 per step at 213k (4.45 / 199), 0.045 at 495k (9.26 / 208), last 100 training episodes |
 
-The imagined reward per step is about 1.6 times the real one. This
-suggests the world model is **optimistic** about reward, or the actor
+At ~213k the imagined reward per step is about 1.6 times the real one.
+This suggests the world model is **optimistic** about reward, or the actor
 finds rewards in imagination that it does not reach in the real game.
 Task 4 (open-loop prediction) and Task 8 (reward-model errors) check this
-on real trajectories.
+on real trajectories. At ~495k imagined and real reward per step agree
+(0.047 vs 0.045): the optimism is gone. The figure now spans the full
+run to ~495k.
