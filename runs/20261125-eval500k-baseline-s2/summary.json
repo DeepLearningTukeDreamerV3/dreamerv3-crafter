@@ -1,0 +1,32 @@
+{
+  "agent": "/logdir/20261124-baseline-s2/ckpt",
+  "episodes": 50,
+  "seed": 100,
+  "return_mean": 5.91999999165535,
+  "return_std": 1.125877438133567,
+  "crafter_score": 5.640534540545837,
+  "success_rates": {
+    "collect_coal": 0.02,
+    "collect_diamond": 0.0,
+    "collect_drink": 0.88,
+    "collect_iron": 0.0,
+    "collect_sapling": 1.0,
+    "collect_stone": 0.0,
+    "collect_wood": 0.98,
+    "defeat_skeleton": 0.02,
+    "defeat_zombie": 0.44,
+    "eat_cow": 0.08,
+    "eat_plant": 0.0,
+    "make_iron_pickaxe": 0.0,
+    "make_iron_sword": 0.0,
+    "make_stone_pickaxe": 0.0,
+    "make_stone_sword": 0.0,
+    "make_wood_pickaxe": 0.08,
+    "make_wood_sword": 0.46,
+    "place_furnace": 0.0,
+    "place_plant": 0.98,
+    "place_stone": 0.0,
+    "place_table": 0.94,
+    "wake_up": 0.94
+  }
+}

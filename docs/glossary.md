@@ -41,6 +41,13 @@ Plain-language definitions. Add terms when you meet new ones.
 - **False alarm** / **missed reward** — errors of the reward head in
   [`failures.md`](failures.md): it predicts an achievement that does not
   happen, or does not predict one that does.
+- **Achievement** — one of Crafter's 22 goals (collect wood, place a
+  table, make a wood pickaxe, defeat a zombie, ...). Many depend on
+  earlier ones, like a tech tree.
+- **Seed** — the number that fixes all random choices of a run (network
+  start weights, worlds, sampling). Runs with different seeds show how
+  much a result depends on luck; we report mean ± standard deviation
+  across seeds (`docs/results.md`).
 - **Episode** — one game from start to end.
 - **Return** / **episode score** — sum of rewards in an episode.
 - **Success rate** — share of episodes in which an achievement was
