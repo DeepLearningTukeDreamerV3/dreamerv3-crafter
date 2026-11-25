@@ -61,7 +61,7 @@ our analysis.
 | Registry | Every run has an ID and a row before it starts, failed ones included | `EXPERIMENTS.md` |
 | Our scripts | Evaluation, open-loop prediction, plots, batch tracing | `scripts/`, `analysis/` |
 
-**Speed.** About 16 env steps/s per run (baseline), 18 with horizon 5.
+**Speed.** About 16 env steps/s per run (horizon 15), 18 with horizon 5.
 The limit is training compute (one batch of 16×64 per 2 env steps), not
 the game. The GPU was busy ~85 % of the time. So we ran seeds in
 parallel instead of trying to make one run faster.
@@ -94,12 +94,15 @@ Every agent plays the same 50 Crafter worlds (world seed 100) in eval
 mode with `scripts/eval_agent.py`. *Crafter score* = geometric mean of
 the 22 *success rates*; it rewards a wide spread of achievements.
 
+"Horizon 15 (default)" is the official config; "horizon 5" changes only
+the imagination length. The horizon 15 run IDs still say `baseline`.
+
 | Agent | Env steps | Return | Crafter score |
 |---|---|---|---|
 | Random | 0 | 1.52 | 1.4 % |
 | Early checkpoint | ~40–52k | 2.64 | 2.7 % |
-| Baseline seed 0 | ~213k | 4.44 | 4.3 % |
-| Baseline, 3 seeds (mean ± sd across seeds) | ~495k | 7.82 ± 1.65 | 11.3 ± 4.9 % |
+| Horizon 15 seed 0 | ~213k | 4.44 | 4.3 % |
+| Horizon 15 (default), 3 seeds (mean ± sd across seeds) | ~495k | 7.82 ± 1.65 | 11.3 ± 4.9 % |
 | per seed 0 / 1 / 2 | ~495k | 8.78 / 8.76 / 5.92 | 13.7 / 14.4 / 5.6 % |
 
 - Each stage beats the one before, on both numbers. The agent learns.
@@ -115,12 +118,12 @@ the 22 *success rates*; it rewards a wide spread of achievements.
 
 ### 5.2 Learning curves over 3 seeds
 
-![Baseline vs horizon 5, mean over 3 seeds](figures/20261124-imag5-s0-vs-20261123-baseline-s0-3seeds.svg)
+![Horizon 15 vs horizon 5, mean over 3 seeds](figures/20261124-imag5-s0-vs-20261123-baseline-s0-3seeds.svg)
 
 Training return, mean of the last 50 episodes before each step count
 (3 seeds: mean ± standard deviation across seeds):
 
-| Env steps | Horizon 15 (baseline) | Horizon 5 |
+| Env steps | Horizon 15 (default) | Horizon 5 |
 |---|---|---|
 | 100k | 3.51 ± 0.08 | 3.71 ± 0.39 |
 | 213k | 4.33 ± 0.17 | 4.71 ± 0.75 |
@@ -129,7 +132,7 @@ Training return, mean of the last 50 episodes before each step count
 | 500k | 7.87 ± 1.74 | 7.24 ± 0.10 |
 
 - Return still rises at 500k for every seed: training was not finished.
-- Baseline seeds spread out after 300k (5.98 to 9.40 at 500k). Seeds of
+- Horizon 15 seeds spread out after 300k (5.98 to 9.40 at 500k). Seeds of
   horizon 5 stay together (7.18 to 7.36).
 
 ### 5.3 Sensitivity: imagination horizon 15 vs 5 (Task 7)
@@ -137,7 +140,7 @@ Training return, mean of the last 50 episodes before each step count
 One flag changed: `--agent.imag_length 5`. The actor and critic learn
 from 5-step imagined rollouts instead of 15.
 
-| Eval at ~495k (50 worlds) | Horizon 15 (baseline) | Horizon 5 |
+| Eval at ~495k (50 worlds) | Horizon 15 (default) | Horizon 5 |
 |---|---|---|
 | Return, mean ± sd across seeds | 7.82 ± 1.65 | 7.47 ± 0.31 |
 | Crafter score, mean ± sd | 11.3 ± 4.9 % | 9.4 ± 2.3 % |
@@ -148,7 +151,7 @@ from 5-step imagined rollouts instead of 15.
 
 **What we found.**
 
-- Early (100k–213k) horizon 5 is ahead; from ~300k the baseline is.
+- Early (100k–213k) horizon 5 is ahead; from ~300k horizon 15 is.
 - At ~495k the means are close and inside the spread: with 3 seeds we
   cannot call one setting better on average.
 - The two best agents use horizon 15 (13.7 and 14.4 %); no horizon-5

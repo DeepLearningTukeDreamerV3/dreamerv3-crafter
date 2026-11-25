@@ -130,7 +130,7 @@ CHARTS = [
              "the learning signal of the actor. Large = the critic is often "
              "surprised; small and flat = little left to learn from imagination."},
     {"group": "Machine", "title": "env steps per second", "lines": [("fps/policy", "steps/s")],
-     "info": "Env steps per second, training included. Baseline: about 16/s, "
+     "info": "Env steps per second, training included. Official crafter config: about 16/s, "
              "because train_ratio 512 trains on 512 replayed steps per env step. "
              "Smoke: about 180/s (tiny model, train_ratio 8, 4 envs)."},
     {"group": "Machine", "title": "GPU use (fraction of time busy, 0 to 1)",
@@ -654,7 +654,7 @@ const pct = v => v.toFixed(1) + ' %';
       [tr ? Math.round((tr.rates.eat_cow || 0) * 100) + ' %' : '?'], '). Low entropy can also limit the exploration needed for rare achievements.']);
   }
   const smoke = D.runs.find(r => r.debug);
-  if (smoke && main) finding('6. Smoke run vs baseline', [
+  if (smoke && main) finding('6. Smoke run vs main run', [
     'The smoke run (', smoke.id, ') uses the debug config: a model thousands of times smaller (deter 8 vs 8192), batch 8×10 instead of 16×64, train ratio 8 instead of 512. ',
     'It only proves the pipeline runs on the GPU. Its actor entropy stays at ', [fmt(smoke.stats.ent_last)],
     ' (random), its dyn loss sits on the 1-nat floor (', fmt(smoke.stats.dyn_last), '), return ', [fmt(smoke.stats.ret_first)],
@@ -972,7 +972,7 @@ steps('loop', [
     [['real vs imagined reward', 'train/rew']]],
   ['Learn actor and critic in imagination', 'The **critic** estimates future reward. The **λ-return** mixes imagined rewards with critic values over the 15 steps (discount 0.997). The actor raises the probability of actions with positive **advantage** (REINFORCE) and keeps some **entropy** so it still explores.',
     [['entropy', 'train/ent/action'], ['|advantage|', 'train/adv_mag'], ['critic loss', 'train/loss/value']]],
-  ['Repeat', '**Train ratio 512**: for each real env step, 512 replayed steps are trained on. That is why the baseline runs at about 16 env steps/s on an H200.',
+  ['Repeat', '**Train ratio 512**: for each real env step, 512 replayed steps are trained on. That is why a run of the official config runs at about 16 env steps/s on an H200.',
     [['speed', 'fps/policy']]],
   ['Evaluate', 'The trained agent, an early checkpoint and a random agent play the same 50 worlds. We count which of the 22 **achievements** each unlocks and compute the **Crafter score** (a geometric mean of success rates), the paper\'s metric.',
     [['Evaluation', '#eval'], ['Achievements', '#achievements']]],
