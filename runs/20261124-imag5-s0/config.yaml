@@ -177,7 +177,7 @@ run:
   report_batches: 1
   report_every: 300
   save_every: 900
-  steps: 213620.0
+  steps: 500000.0
   train_ratio: 512.0
   usage: {gc: false, gputil: false, malloc: false, nvsmi: true, psutil: true}
 script: train
