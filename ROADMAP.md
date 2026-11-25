@@ -164,7 +164,12 @@ committed.
 
 ## Week 8 — M5: final
 
-- [ ] Fresh clone on a clean machine; follow `README.md` only; debug run works.
+- [x] Fresh clone on a clean machine; follow `README.md` only; debug run works.
+      Done 2026-11-25 (issue #27): new clone, `./setup.sh` (0 failures,
+      `check_local` passes, GPU seen by JAX), `docker compose --profile cpu
+      up train-cpu` trained ~9k steps with checkpoints and scores, viewer
+      answered on port 8000. Caveat: same laptop with Docker's image cache,
+      not a second computer.
 - [ ] Final README, technical report (`docs/report/`).
 - [ ] 10–15 min demo: environment behaviour + internal world-model workflow.
 - [ ] Tick all 12 deliverables below.
@@ -176,7 +181,7 @@ No new experiments this week. It is the buffer for reruns.
 
 ## Deliverables (assignment §7)
 
-- [ ] 1. Working installation and documented environment
+- [x] 1. Working installation and documented environment
 - [x] 2. Reproduced baseline run (official config)
 - [x] 3. Original architecture / data-flow diagram
 - [x] 4. Training logs and learning curves

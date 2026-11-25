@@ -243,7 +243,7 @@ Full list: `docs/failures.md`, `EXPERIMENTS.md`.
 
 | # | Deliverable (assignment §7) | State | To do |
 |---|---|---|---|
-| 1 | Working installation, documented environment | done | tick in ROADMAP after the fresh-clone check |
+| 1 | Working installation, documented environment | done (fresh clone checked 2026-11-25) | – |
 | 2 | Reproduced baseline run (official config) | done (500k, 3 seeds) | – |
 | 3 | Architecture / data-flow diagram | done (`docs/architecture.md`) | – |
 | 4 | Training logs and learning curves | done (`runs/`, `docs/figures/`) | – |
@@ -252,7 +252,7 @@ Full list: `docs/failures.md`, `EXPERIMENTS.md`.
 | 7 | One controlled sensitivity experiment | done (3 seeds) | – |
 | 8 | SLURM scripts and GPU execution evidence | done (`docs/gpu-evidence.md`: job IDs, wall-clock, ~88 % GPU use) | – |
 | 9 | Error analysis with failure cases | done (`docs/failures.md`, 213k and 495k) | turn into the report section |
-| 10 | Reproducible repository with README | mostly | fresh clone on a clean machine, follow README only |
+| 10 | Reproducible repository with README | mostly (fresh clone passes) | final README pass |
 | 11 | Final technical report | not started | write in `docs/report/` from `docs/results.md`, `docs/failures.md`, `docs/architecture.md`; cite one general and one robotics world-model survey |
 | 12 | 10–15 min demo | not started | game footage, open-loop GIF, results; rehearse |
 
