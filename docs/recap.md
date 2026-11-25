@@ -6,7 +6,8 @@ we found, and what is left. For the details, follow the links. Terms in
 
 State on 2026-11-25: all experiments are done, the fresh-clone check
 passes, and the final report is in `docs/report/report.md`. What remains
-is a final README pass and rehearsing the demo (`docs/report/demo.md`).
+is for the team: read the report and the cited surveys, rehearse the
+demo (`docs/report/demo.md`).
 
 ## 1. Goal
 
@@ -253,7 +254,7 @@ Full list: `docs/failures.md`, `EXPERIMENTS.md`.
 | 7 | One controlled sensitivity experiment | done (3 seeds) | – |
 | 8 | SLURM scripts and GPU execution evidence | done (`docs/gpu-evidence.md`: job IDs, wall-clock, ~88 % GPU use) | – |
 | 9 | Error analysis with failure cases | done (`docs/failures.md`, 213k and 495k) | turn into the report section |
-| 10 | Reproducible repository with README | mostly (fresh clone passes) | final README pass |
+| 10 | Reproducible repository with README | done (fresh clone passes, README points to all results) | – |
 | 11 | Final technical report | done (`docs/report/report.md`) | team reads it and the cited surveys (Ding et al., Hou et al.) |
 | 12 | 10–15 min demo | script done (`docs/report/demo.md`) | team rehearses with a timer, records if asked |
 

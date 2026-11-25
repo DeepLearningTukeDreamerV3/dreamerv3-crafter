@@ -13,6 +13,35 @@ what it predicts, how it imagines, where it fails.
 (rebuilt from `main` on every merge by `.github/workflows/pages.yml`; local copy:
 `python analysis/dashboard.py`, then open `dashboard.html`).
 
+## Results (state on 2026-11-25)
+
+All experiments are done; the 12 deliverables are ticked in
+[`ROADMAP.md`](ROADMAP.md).
+
+- Six runs of the official `crafter` config to ~495k env steps on one
+  H200 each: 3 seeds with the default imagination horizon (15), 3 with
+  horizon 5.
+- Crafter score: random 1.4 %, early checkpoint 2.7 %, ~213k 4.3 %,
+  ~495k **11.3 ± 4.9 %** (seeds 13.7 / 14.4 / 5.6 %). Paper: 14.5 % at 1M
+  steps.
+- The world model predicts frames better than "copy the last frame" from
+  7 steps ahead, loses small objects first, and predicts rewards
+  unreliably over 32 steps.
+
+| Read | For |
+|---|---|
+| [`docs/report/report.md`](docs/report/report.md) | **Final technical report**: model, real vs imagined data, experiments, results, failures, limits |
+| [`docs/report/demo.md`](docs/report/demo.md) | 10–15 min demo script |
+| [`docs/recap.md`](docs/recap.md) | Whole project on one page |
+| [`docs/results.md`](docs/results.md) | Every evaluation number, paper comparison |
+| [`docs/failures.md`](docs/failures.md) | Error analysis |
+| [`docs/gpu-evidence.md`](docs/gpu-evidence.md) | PERUN jobs, GPU use, wall-clock |
+| [`EXPERIMENTS.md`](EXPERIMENTS.md) | Every run with commit, flags and job ID |
+
+To reproduce: [Quickstart](#quickstart-local) for the local setup, then
+[`docs/hpc.md`](docs/hpc.md) and `slurm/` for the cluster runs. Every
+figure's command is in the report's appendix.
+
 ## Start here (new member, in this order)
 
 1. **This page**, to the end.
@@ -26,9 +55,6 @@ what it predicts, how it imagines, where it fails.
    pick an issue of the current week, assign yourself.
 6. **[`docs/learning-path.md`](docs/learning-path.md)**:
    start step 1. New to deep learning? This is for you.
-
-Want the state of the project in one page? Read
-**[`docs/recap.md`](docs/recap.md)**.
 
 Then, when you need them:
 
