@@ -133,3 +133,9 @@ Plain-language definitions. Add terms when you meet new ones.
   edit, `git` and submit jobs there, never compute.
 - **Compute node** — machine with CPUs/GPUs where SLURM runs your job.
 - **`.sif`** — single-file Apptainer image, built from our Docker image.
+- **GPU utilisation** — share of time at least one GPU kernel is running
+  (nvidia-smi "GPU Utilization"). High (~90 %) means the GPU is the
+  bottleneck. See [`gpu-evidence.md`](gpu-evidence.md).
+- **Memory-bandwidth utilisation** — share of time GPU memory is being
+  read or written. Not the same as how much memory is used.
+- **Wall-clock time** — real elapsed time of a job, as on a clock.

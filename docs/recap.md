@@ -250,7 +250,7 @@ Full list: `docs/failures.md`, `EXPERIMENTS.md`.
 | 5 | Prediction / imagination experiment | done (213k and 495k open loop) | optional: same episodes for both checkpoints |
 | 6 | Random-agent and early-checkpoint baselines | done | – |
 | 7 | One controlled sensitivity experiment | done (3 seeds) | – |
-| 8 | SLURM scripts and GPU execution evidence | scripts done | collect job IDs, `env.txt`, wall times, GPU use into one doc (`sacct` is not reachable through `perun.sh`) |
+| 8 | SLURM scripts and GPU execution evidence | done (`docs/gpu-evidence.md`: job IDs, wall-clock, ~88 % GPU use) | – |
 | 9 | Error analysis with failure cases | done (`docs/failures.md`, 213k and 495k) | turn into the report section |
 | 10 | Reproducible repository with README | mostly | fresh clone on a clean machine, follow README only |
 | 11 | Final technical report | not started | write in `docs/report/` from `docs/results.md`, `docs/failures.md`, `docs/architecture.md`; cite one general and one robotics world-model survey |

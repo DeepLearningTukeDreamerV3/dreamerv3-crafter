@@ -60,7 +60,7 @@ EXPERIMENTS.md       every run, including failed ones
 docs/                learning path, glossary, git workflow, architecture, HPC,
                      recap.md (whole project on one page: how, results, what is left),
                      results (evaluation table, paper comparison),
-                     failure cases (Task 8), report
+                     failure cases (Task 8), gpu-evidence.md (PERUN jobs, GPU use), report
 scripts/             setup check, env snapshot, random agent, issue list,
                      perun.sh (fixed PERUN commands, run from the laptop),
                      eval_agent.py (checkpoint or random agent on fixed worlds, Task 6),
@@ -70,7 +70,8 @@ analysis/            plotting scripts and notebooks;
                      trace_batch.py (tensor shapes of one batch, Task 2),
                      dashboard.py (one offline HTML page: runs, evals, findings, roadmap),
                      failures.py (open-loop error growth and reward errors, Task 8),
-                     compare_runs.py (two runs, or seed means, on the same charts, Task 7)
+                     compare_runs.py (two runs, or seed means, on the same charts, Task 7),
+                     gpu_usage.py (GPU use and speed of PERUN runs, deliverable 8)
 docs/figures/        figures for the report, named after the run ID
 runs/                small logs of finished runs (metrics, scores, config)
 slurm/               SLURM job scripts for the PERUN cluster
