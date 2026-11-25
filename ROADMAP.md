@@ -84,7 +84,8 @@ committed.
       Done with `analysis/trace_batch.py` (measured shapes, baseline config).
 - [x] Draw the original data-flow diagram. Mark where real data stops and
       imagination begins. Mermaid diagram in `docs/architecture.md`.
-- [ ] If a second GPU is free: launch seeds 1 and 2 of the baseline.
+- [x] If a second GPU is free: launch seeds 1 and 2 of the baseline.
+      Done later (week 7): `20261124-baseline-s1`, `-s2`, to 500k steps.
 
 **Done when:** the team has reviewed `docs/architecture.md` and the diagram.
 
@@ -98,6 +99,9 @@ committed.
       *short* reproduction run without code changes, and the score
       already rises in the first 15k steps. The sensitivity run uses the
       same 200k budget. Resume later with the same run ID if needed.
+      Week 7: resumed with the same run ID to 500k env steps, plus seeds
+      1 and 2 of both settings (3 seeds each, ~9 h per run). Results at
+      ~495k in `docs/results.md`.
 - [x] Task 3: map each loss in `metrics.jsonl` to its component
       (`train/loss/image`, `rew`, `con`, `dyn`, `rep`, `policy`, `value`, `repval`).
       Done in `docs/architecture.md`, section "Losses".
@@ -111,7 +115,8 @@ committed.
       `upstream/scores/` has no Crafter file: use the DreamerV3 paper.
       Our run does not log achievements (`env.crafter.logs` false), so
       the paper's Crafter score comes from the Task 6 evaluation runs.
-      Done in `docs/results.md`: paper v1 Table M.1 vs our 213k run.
+      Done in `docs/results.md`: paper v1 Table M.1 vs our 213k and
+      ~495k runs (3 seeds).
 
 **Done when:** baseline reproduced, curves committed, M1 approved.
 
@@ -144,10 +149,12 @@ committed.
 ## Week 7 — M4 / M5: sensitivity results and failures
 
 - [x] Sensitivity results vs default; explain the effect.
-      Done in `docs/results.md` (eval `20261124-eval-imag5-s0`).
+      Done in `docs/results.md` (eval `20261124-eval-imag5-s0`), then
+      repeated at ~495k with 3 seeds per setting (`20261125-eval500k-*`).
 - [x] Task 8: failure cases: error growth over the open-loop horizon,
       missed sparse rewards, reward-model errors, crashed or failed runs
-      from `EXPERIMENTS.md`. Draft in `docs/failures.md`.
+      from `EXPERIMENTS.md`. Draft in `docs/failures.md` (213k and
+      ~495k open-loop tests).
 - [ ] GPU utilisation and wall-clock time of the main run.
 
 **Done when:** M4 approved, failure section drafted.
@@ -166,14 +173,14 @@ No new experiments this week. It is the buffer for reruns.
 ## Deliverables (assignment §7)
 
 - [ ] 1. Working installation and documented environment
-- [ ] 2. Reproduced baseline run (official config)
-- [ ] 3. Original architecture / data-flow diagram
-- [ ] 4. Training logs and learning curves
-- [ ] 5. Prediction / imagination experiment
-- [ ] 6. Random-agent and early-checkpoint baselines
-- [ ] 7. One controlled sensitivity experiment
+- [x] 2. Reproduced baseline run (official config)
+- [x] 3. Original architecture / data-flow diagram
+- [x] 4. Training logs and learning curves
+- [x] 5. Prediction / imagination experiment
+- [x] 6. Random-agent and early-checkpoint baselines
+- [x] 7. One controlled sensitivity experiment
 - [ ] 8. SLURM scripts and GPU execution evidence (PERUN)
-- [ ] 9. Error analysis with failure cases
+- [x] 9. Error analysis with failure cases
 - [ ] 10. Reproducible repository with README
 - [ ] 11. Final technical report
 - [ ] 12. 10–15 min demo

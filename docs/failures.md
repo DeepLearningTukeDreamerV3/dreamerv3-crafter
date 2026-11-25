@@ -76,7 +76,49 @@ reaches a death. This is a gap in the test, not evidence that the head
 predicts deaths well. To test it: cut windows that end at the last step
 of an episode.
 
-## 4. Crashed and failed runs
+## 4. Same test at ~495k steps
+
+Run `20261125-openloop500k-s0`: same script, same 10 worlds (seed 100),
+checkpoint of `20261123-baseline-s0` at ~495k env steps. 27 windows
+(two episodes were shorter than 64 steps).
+
+```sh
+python analysis/failures.py 20261125-openloop500k-s0
+```
+
+![Same figure at ~495k steps](figures/20261125-openloop500k-s0-failures.svg)
+
+| Steps ahead | 1 | 2 | 4 | 8 | 16 | 32 |
+|---|---|---|---|---|---|---|
+| World model MSE, ~213k | 0.011 | 0.012 | 0.018 | 0.023 | 0.027 | 0.032 |
+| World model MSE, ~495k | 0.020 | 0.021 | 0.023 | 0.029 | 0.040 | 0.048 |
+| Copy last real frame, ~495k | 0.007 | 0.010 | 0.016 | 0.029 | 0.033 | 0.038 |
+
+| Reward windows | Hit | False alarm | Missed | Neither | Mean predicted / real |
+|---|---|---|---|---|---|
+| ~213k | 6 | 9 | 4 | 11 | 0.53 / 0.26 |
+| ~495k | 6 | 6 | 7 | 8 | 0.50 / 0.70 |
+
+- **Image error is higher, and the model beats the copy at only one
+  step.** This does not show that the model got worse. The two tests see
+  different frames: the 495k agent survives longer (episodes of 56–428
+  steps, mean 258, against 202 at 213k), so its windows reach **night**
+  and caves. Crafter draws night frames darker and adds random noise to
+  them (`runs/20261125-openloop500k-s0/media/openloop.png`, dark rows).
+  No model can predict that noise pixel by pixel, and the decoder
+  already errs in context (MSE 0.021 against 0.009 at 213k).
+- **Reward flips from too high to too low.** Fewer false alarms (6 vs 9),
+  more missed rewards (7 vs 4). The agent now unlocks more achievements
+  per window (real mean 0.70 vs 0.26) and the model misses many of them.
+- **Health losses still not foreseen.** 4 windows lose health (real
+  mean −0.23); the model predicts +0.93 there.
+- **Continuation**: minimum 0.960, still no episode end in a window.
+
+A fair comparison would feed the *same* recorded frames and actions to
+both checkpoints. Our script records new episodes with each checkpoint's
+own policy, so it cannot do that (not done, see Limits).
+
+## 5. Crashed and failed runs
 
 From `EXPERIMENTS.md` (rows are never deleted):
 
@@ -84,7 +126,8 @@ From `EXPERIMENTS.md` (rows are never deleted):
 |---|---|---|---|
 | `20261109-smoke-j148884` | killed by the 30 min time limit | `--run.duration` is not read by upstream `e3f0224`; the run never stopped | smoke uses `--run.steps 100000` |
 | `20261124-openloop-s0`, job 172547 | crashed after recording the episodes | upstream's JAX transfer guard refuses an implicit GPU-to-host copy; CPU tests did not show it | explicit `jax.device_get` (commit `7bf2bb4`), job 172548 |
-| `20261123-baseline-s0` | stopped by hand at 213,620 of 1.1M steps | time budget of the project, not a crash | resume with the same run ID if needed |
+| `20261123-baseline-s0` | stopped by hand at 213,620 of 1.1M steps | time budget of the project, not a crash | resumed with the same run ID to 500k (job in `EXPERIMENTS.md`) |
+| 500k evals, first submit | `git switch` refused on the cluster clone | the resumed runs rewrote their committed `env.txt` | `scripts/perun.sh` restores such a file when it matches the committed copy (PR #60) |
 
 Lesson for both crashes: a flag or code path that works on the laptop
 CPU can fail on the cluster GPU. The staged workflow (`docs/hpc.md`:
@@ -93,8 +136,10 @@ was lost.
 
 ## Limits of this analysis
 
-- One checkpoint, one seed, 30 windows: the counts in section 2 are
-  small. Treat them as examples, not rates.
+- One seed, 27–30 windows per checkpoint: the counts in sections 2
+  and 4 are small. Treat them as examples, not rates.
+- The 213k and 495k tests record different episodes (each with its own
+  policy), so their image errors are not directly comparable.
 - MSE is a pixel measure. It rewards blur and ignores whether a small,
   important object (a cow) is right.
 - The windows follow the trained policy, so they cover the states that
