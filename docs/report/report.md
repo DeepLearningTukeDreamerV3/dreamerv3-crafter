@@ -456,8 +456,10 @@ ahead, against a trivial baseline that repeats the last real frame:
 | World model, ~495k | 0.020 | 0.021 | 0.023 | 0.029 | 0.040 | 0.048 |
 | Copy last frame, ~495k | 0.007 | 0.010 | 0.016 | 0.029 | 0.033 | 0.038 |
 
-Real (top) vs imagined (bottom) frames, ~213k. Left part of each row:
-context, the model sees the real frame. Right part: open loop.
+Three windows at ~213k. In each pair of rows: real frame (top) and the
+model's frame (bottom). The first two columns are context steps (the
+model sees the real frame); the other columns are open loop, 1 to 32
+steps after the last real frame.
 
 ![Open-loop prediction at ~213k: real frames and the model's predictions](../../runs/20261124-openloop-s0/media/openloop.png)
 

@@ -171,7 +171,9 @@ committed.
       answered on port 8000. Caveat: same laptop with Docker's image cache,
       not a second computer.
 - [ ] Final README, technical report (`docs/report/`).
-- [ ] 10–15 min demo: environment behaviour + internal world-model workflow.
+- [x] 10–15 min demo: environment behaviour + internal world-model workflow.
+      Script in `docs/report/demo.md`; the team rehearses (and records it
+      if asked).
 - [ ] Tick all 12 deliverables below.
 - [x] GPU execution evidence for deliverable 8: job IDs, `sacct` output,
       `runs/<run-id>/env.txt` of the PERUN runs. In `docs/gpu-evidence.md`;
@@ -192,7 +194,7 @@ No new experiments this week. It is the buffer for reruns.
 - [x] 9. Error analysis with failure cases
 - [ ] 10. Reproducible repository with README
 - [x] 11. Final technical report (`docs/report/report.md`)
-- [ ] 12. 10–15 min demo
+- [x] 12. 10–15 min demo (script `docs/report/demo.md`)
 
 ## Risks
 

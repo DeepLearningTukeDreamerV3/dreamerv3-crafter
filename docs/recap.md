@@ -6,7 +6,7 @@ we found, and what is left. For the details, follow the links. Terms in
 
 State on 2026-11-25: all experiments are done, the fresh-clone check
 passes, and the final report is in `docs/report/report.md`. What remains
-is the demo outline and a final README pass.
+is a final README pass and rehearsing the demo (`docs/report/demo.md`).
 
 ## 1. Goal
 
@@ -255,7 +255,7 @@ Full list: `docs/failures.md`, `EXPERIMENTS.md`.
 | 9 | Error analysis with failure cases | done (`docs/failures.md`, 213k and 495k) | turn into the report section |
 | 10 | Reproducible repository with README | mostly (fresh clone passes) | final README pass |
 | 11 | Final technical report | done (`docs/report/report.md`) | team reads it and the cited surveys (Ding et al., Hou et al.) |
-| 12 | 10–15 min demo | not started | game footage, open-loop GIF, results; rehearse |
+| 12 | 10–15 min demo | script done (`docs/report/demo.md`) | team rehearses with a timer, records if asked |
 
 Also open: old PRs #38 and #39, issue #1, and whether to commit
 `analysis/progress_deck.py`.
