@@ -45,10 +45,12 @@ committed.
 - [x] Smoke test on a local GPU (`20261017-smoke-s0`): ~56 h for 1.1M
       steps and ~23 GB replay RAM, too much for a laptop. So the baseline
       runs on PERUN.
-- [ ] Build `dreamerv3.sif` and upload it to PERUN (`docs/hpc.md`).
-- [ ] Staged tests on PERUN: `slurm/00_interactive.sh` in an `srun` GPU
+- [x] Build `dreamerv3.sif` and upload it to PERUN (`docs/hpc.md`).
+- [x] Staged tests on PERUN: `slurm/00_interactive.sh` in an `srun` GPU
       shell, then `sbatch slurm/01_smoke.sbatch`. Note steps per minute.
-- [ ] Register the run in `EXPERIMENTS.md`, then launch the **Crafter
+      Smoke jobs 148884, 172451; no interactive run was recorded
+      (`docs/gpu-evidence.md`, Gaps).
+- [x] Register the run in `EXPERIMENTS.md`, then launch the **Crafter
       baseline**: official config, seed 0, code unchanged:
 
       ```sh
@@ -155,7 +157,8 @@ committed.
       missed sparse rewards, reward-model errors, crashed or failed runs
       from `EXPERIMENTS.md`. Draft in `docs/failures.md` (213k and
       ~495k open-loop tests).
-- [ ] GPU utilisation and wall-clock time of the main run.
+- [x] GPU utilisation and wall-clock time of the main run.
+      Done in `docs/gpu-evidence.md` (`analysis/gpu_usage.py`).
 
 **Done when:** M4 approved, failure section drafted.
 
@@ -165,8 +168,9 @@ committed.
 - [ ] Final README, technical report (`docs/report/`).
 - [ ] 10–15 min demo: environment behaviour + internal world-model workflow.
 - [ ] Tick all 12 deliverables below.
-- [ ] GPU execution evidence for deliverable 8: job IDs, `sacct` output,
-      `runs/<run-id>/env.txt` of the PERUN runs.
+- [x] GPU execution evidence for deliverable 8: job IDs, `sacct` output,
+      `runs/<run-id>/env.txt` of the PERUN runs. In `docs/gpu-evidence.md`;
+      `sacct` is not reachable, wall-clock comes from the job logs.
 
 No new experiments this week. It is the buffer for reruns.
 
@@ -179,7 +183,7 @@ No new experiments this week. It is the buffer for reruns.
 - [x] 5. Prediction / imagination experiment
 - [x] 6. Random-agent and early-checkpoint baselines
 - [x] 7. One controlled sensitivity experiment
-- [ ] 8. SLURM scripts and GPU execution evidence (PERUN)
+- [x] 8. SLURM scripts and GPU execution evidence (PERUN)
 - [x] 9. Error analysis with failure cases
 - [ ] 10. Reproducible repository with README
 - [ ] 11. Final technical report
