@@ -128,6 +128,7 @@ From `EXPERIMENTS.md` (rows are never deleted):
 | `20261124-openloop-s0`, job 172547 | crashed after recording the episodes | upstream's JAX transfer guard refuses an implicit GPU-to-host copy; CPU tests did not show it | explicit `jax.device_get` (commit `7bf2bb4`), job 172548 |
 | `20261123-baseline-s0` | stopped by hand at 213,620 of 1.1M steps | time budget of the project, not a crash | resumed with the same run ID to 500k (job in `EXPERIMENTS.md`) |
 | 500k evals, first submit | `git switch` refused on the cluster clone | the resumed runs rewrote their committed `env.txt` | `scripts/perun.sh` restores such a file when it matches the committed copy (PR #60) |
+| every PERUN job up to 175209 | `env.txt` shows the host's Python 3.9 without JAX and an empty Git section | `slurm/common.sh` set `SIF` without `export`, so `scripts/env_snapshot.sh` (a child process) never used the image | `export SIF`; the real versions of those runs are the image's (`Dockerfile`: Python 3.11, `jax[cuda]` 0.5.0) and the commit is in `EXPERIMENTS.md` |
 
 Lesson for both crashes: a flag or code path that works on the laptop
 CPU can fail on the cluster GPU. The staged workflow (`docs/hpc.md`:

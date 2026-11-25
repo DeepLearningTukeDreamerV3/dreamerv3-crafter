@@ -27,7 +27,10 @@ if [ -z "${SCRATCH_DIR:-}" ]; then
   fi
 fi
 # The image lives in home: home is not purged.
-SIF="${SIF:-$USER_HOME/dreamerv3.sif}"
+# Exported so child scripts (scripts/env_snapshot.sh) record the versions
+# inside the image, not the host's Python. Before this export, every
+# env.txt up to job 175209 shows the host's Python 3.9 without JAX.
+export SIF="${SIF:-$USER_HOME/dreamerv3.sif}"
 MODULES="${MODULES:-}"
 LOGROOT="$SCRATCH_DIR/dreamer/logdir"
 echo "common.sh: repo $REPO_DIR, image $SIF, logs $LOGROOT"
