@@ -13,6 +13,9 @@ what it predicts, how it imagines, where it fails.
 (rebuilt from `main` on every merge by `.github/workflows/pages.yml`; local copy:
 `python analysis/dashboard.py`, then open `dashboard.html`).
 
+**Project recap page:** https://deeplearningtukedreamerv3.github.io/dreamerv3-crafter/recap.html
+(source `docs/recap.html`, copied to the site by the same workflow).
+
 ## Results (state on 2026-11-25)
 
 All experiments are done; the 12 deliverables are ticked in
@@ -32,7 +35,7 @@ All experiments are done; the 12 deliverables are ticked in
 |---|---|
 | [`docs/report/report.md`](docs/report/report.md) | **Final technical report**: model, real vs imagined data, experiments, results, failures, limits |
 | [`docs/report/demo.md`](docs/report/demo.md) | 10–15 min demo script |
-| [`docs/recap.md`](docs/recap.md) | Whole project on one page |
+| [`docs/recap.md`](docs/recap.md) | Whole project on one page (web version: [`recap.html`](https://deeplearningtukedreamerv3.github.io/dreamerv3-crafter/recap.html)) |
 | [`docs/results.md`](docs/results.md) | Every evaluation number, paper comparison |
 | [`docs/failures.md`](docs/failures.md) | Error analysis |
 | [`docs/gpu-evidence.md`](docs/gpu-evidence.md) | PERUN jobs, GPU use, wall-clock |
@@ -85,6 +88,7 @@ CONTRIBUTING.md      branches, PRs, experiment naming
 EXPERIMENTS.md       every run, including failed ones
 docs/                learning path, glossary, git workflow, architecture, HPC,
                      recap.md (whole project on one page: how, results, what is left),
+                     recap.html (same recap as one web page, on GitHub Pages),
                      results (evaluation table, paper comparison),
                      failure cases (Task 8), gpu-evidence.md (PERUN jobs, GPU use)
 docs/report/         report.md (final technical report), demo.md (10–15 min demo script)
@@ -105,7 +109,7 @@ slurm/               SLURM job scripts for the PERUN cluster
 Dockerfile, compose.yaml, DOCKER.md   Docker setup
 .env.example         defaults for compose; setup.sh copies it to .env
 .devcontainer/       dev container for VS Code, Codespaces, PyCharm Pro
-.github/             CI (large file check, dashboard on GitHub Pages), PR template, CODEOWNERS
+.github/             CI (large file check, dashboard and recap on GitHub Pages), PR template, CODEOWNERS
 LICENSE              MIT, from upstream
 upstream/            danijar/dreamerv3 @ e3f0224, do not edit before M1
   dreamerv3/         agent, world model (rssm.py), configs.yaml

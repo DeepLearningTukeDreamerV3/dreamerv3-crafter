@@ -2,7 +2,9 @@
 
 One page to understand the whole project: what we did, how, why, what
 we found, and what is left. For the details, follow the links. Terms in
-*italics* are in `docs/glossary.md`.
+*italics* are in `docs/glossary.md`. A shorter visual version is
+`docs/recap.html`, published at
+https://deeplearningtukedreamerv3.github.io/dreamerv3-crafter/recap.html.
 
 State on 2026-11-25: all experiments are done, the fresh-clone check
 passes, and the final report is in `docs/report/report.md`. What remains

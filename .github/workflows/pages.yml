@@ -1,6 +1,7 @@
 # Publish the dashboard (analysis/dashboard.py) to GitHub Pages.
 # Runs on every push to main, so the public page always shows what is
 # merged: runs/, EXPERIMENTS.md, ROADMAP.md, docs/glossary.md.
+# Also publishes docs/recap.html (project recap) as recap.html.
 # Repo setting needed once: Settings > Pages > Source: GitHub Actions.
 name: Dashboard on GitHub Pages
 
@@ -28,6 +29,7 @@ jobs:
           python-version: "3.11"
       # Standard library only: no pip install needed.
       - run: python analysis/dashboard.py --site _site
+      - run: cp docs/recap.html _site/recap.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
