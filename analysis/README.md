@@ -27,3 +27,14 @@ after the 1M logs are fetched, remake it only with `--max-step 500000`.
 `dashboard.py` reads the checkpoint step and the horizon of an evaluation
 from `EXPERIMENTS.md`. Keep the text `(~495k steps` in the evaluation row
 and `--agent.imag_length N` in the training row.
+
+## Gameplay at each training stage
+
+`gameplay.py` builds `gameplay.html` from `runs/*/media/gameplay.json`
+and the videos next to it: one panel per agent, same worlds, played in
+step. All agents start in exactly the same world. After that the lives
+differ, because the agents act differently and because Crafter itself is
+not fully repeatable (it loops over sets of objects whose order depends
+on memory addresses). Recording does not change the game: with that order
+fixed, the same actions gave the same game with and without the recorder.
+The panel label comes from the registry row, as for `dashboard.py`.

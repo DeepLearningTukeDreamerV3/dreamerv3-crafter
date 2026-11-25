@@ -282,6 +282,8 @@ def load(root, out_dir):
     order = {r.get("Run ID"): i for i, r in enumerate(reg_rows)}
     runs, evals, media, openloops = [], [], [], []
     for d in sorted(p for p in (root / "runs").iterdir() if p.is_dir()):
+        if "gameplay" in d.name:
+            continue   # recorded lives for analysis/gameplay.py, not an evaluation
         for f in sorted((d / "media").glob("*")) if (d / "media").is_dir() else []:
             if f.suffix.lower() in MEDIA:
                 media.append({"path": str(f), "run": d.name, "name": f.name, "video": f.suffix.lower() in {".mp4", ".webm"},

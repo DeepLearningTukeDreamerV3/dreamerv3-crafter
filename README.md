@@ -16,6 +16,10 @@ what it predicts, how it imagines, where it fails.
 **Project recap page:** https://deeplearningtukedreamerv3.github.io/dreamerv3-crafter/recap.html
 (source `docs/recap.html`, copied to the site by the same workflow).
 
+**Gameplay at each training stage** (synced videos on the same worlds):
+`python analysis/gameplay.py`, then open `gameplay.html`. The same workflow
+publishes it as `gameplay.html` on the site once recordings are merged.
+
 ## Results (state on 2026-11-25)
 
 All experiments are done; the 12 deliverables are ticked in
@@ -95,6 +99,7 @@ docs/report/         report.md (final technical report), demo.md (10–15 min de
 scripts/             setup check, env snapshot, random agent, issue list,
                      perun.sh (fixed PERUN commands, run from the laptop),
                      eval_agent.py (checkpoint or random agent on fixed worlds, Task 6),
+                     gameplay_recorder.py (videos for eval_agent.py --video),
                      openloop.py (world model predicts frames alone, Task 4)
 analysis/            plotting scripts and notebooks;
                      plot_curves.py (return + loss SVGs of one run, Task 3),
@@ -102,14 +107,15 @@ analysis/            plotting scripts and notebooks;
                      dashboard.py (one offline HTML page: runs, evals, findings, roadmap),
                      failures.py (open-loop error growth and reward errors, Task 8),
                      compare_runs.py (two or three runs, or seed means, on the same charts, Task 7),
-                     gpu_usage.py (GPU use and speed of PERUN runs, deliverable 8)
+                     gpu_usage.py (GPU use and speed of PERUN runs, deliverable 8),
+                     gameplay.py + gameplay_template.html (synced gameplay videos per training stage)
 docs/figures/        figures for the report, named after the run ID
 runs/                small logs of finished runs (metrics, scores, config)
 slurm/               SLURM job scripts for the PERUN cluster
 Dockerfile, compose.yaml, DOCKER.md   Docker setup
 .env.example         defaults for compose; setup.sh copies it to .env
 .devcontainer/       dev container for VS Code, Codespaces, PyCharm Pro
-.github/             CI (large file check, dashboard and recap on GitHub Pages), PR template, CODEOWNERS
+.github/             CI (large file check, dashboard, recap and gameplay on GitHub Pages), PR template, CODEOWNERS
 LICENSE              MIT, from upstream
 upstream/            danijar/dreamerv3 @ e3f0224, do not edit before M1
   dreamerv3/         agent, world model (rssm.py), configs.yaml

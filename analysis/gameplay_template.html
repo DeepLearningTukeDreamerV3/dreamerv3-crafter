@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crafter Training Replay</title>
+<style>
+/* One row of videos on a projector, one shared timeline below.
+   Dark only: Crafter's night grass as ground, torch amber for "unlocked". */
+:root {
+  color-scheme: dark;
+  --bg: #14211e; --panel: #1d2e29; --line: #34483f; --ink: #edf2e8;
+  --muted: #a3b5aa; --torch: #f4b942; --health: #ef6f6c; --food: #d99a5b;
+  --drink: #6cb4ee; --energy: #e7d95a; --dead: #ef8a80;
+  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 var(--sans); }
+main { max-width: 1840px; margin: 0 auto; padding: 18px max(16px, 1.6vw) 40px; display: grid;
+  grid-template-columns: minmax(0, 1fr); gap: 16px; }
+h1 { font-size: 26px; line-height: 1.15; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+h2 { font-size: 18px; margin: 16px 0 0; }
+p { margin: 0; max-width: 75ch; color: var(--muted); }
+header { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: end; justify-content: space-between; }
+.worlds, .controls { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+button, select { font: 600 14px var(--sans); color: var(--ink); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 4px; padding: 7px 13px; cursor: pointer; }
+button:hover { border-color: var(--muted); }
+button[aria-pressed=true], #play { background: var(--torch); border-color: var(--torch); color: #22190a; }
+#play { min-width: 84px; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+#panels { display: grid; gap: 14px; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); }
+.agent { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.agent h3 { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 19px; }
+.agent h3 small { font: 400 13px var(--sans); color: var(--muted); }
+.count { font: 700 22px var(--mono); color: var(--torch); white-space: nowrap; }
+.agent h3 .count small { font: 400 13px var(--mono); display: inline; }
+.screen { position: relative; aspect-ratio: 1; background: #000; overflow: hidden; border-radius: 3px; }
+video { width: 100%; height: 100%; display: block; transition: filter .4s; }
+.over video { filter: grayscale(1) brightness(.45); }
+.end { position: absolute; inset: 0; display: none; place-content: center; text-align: center; font-weight: 700; font-size: 20px; padding: 8px; }
+.end small { display: block; font-weight: 400; font-size: 14px; }
+.over .end { display: grid; }
+.over .end.died b { color: var(--dead); }
+.toast { position: absolute; left: 8px; right: 8px; top: 8px; text-align: center; background: var(--torch); color: #22190a;
+  font-weight: 700; font-size: 14px; padding: 4px 6px; border-radius: 3px; opacity: 0; }
+.toast.on { opacity: 1; }
+.act { font: 13px var(--mono); color: var(--muted); }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; font-size: 12px; color: var(--muted); }
+.stats i { display: block; height: 5px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.stats b { display: block; height: 100%; }
+.chips { display: grid; gap: 5px; }
+.chips div { display: flex; flex-wrap: wrap; gap: 3px; }
+.chip { font-size: 11.5px; line-height: 1; padding: 4px 6px; border-radius: 3px; border: 1px solid var(--line); color: var(--muted); }
+.chip.on { background: var(--torch); border-color: var(--torch); color: #22190a; font-weight: 700; }
+#time { display: block; width: 100%; background: var(--panel); border-radius: 4px; cursor: ew-resize; touch-action: pan-y; }
+#clock { font: 600 14px var(--mono); color: var(--muted); margin-left: auto; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 6px 18px 6px 0; border-bottom: 1px solid var(--line); font-weight: 400; white-space: nowrap; }
+th { color: var(--muted); } th:first-child { text-align: left; color: var(--ink); font-weight: 600; }
+kbd { font: 12px var(--mono); border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; }
+@media (max-width: 1000px) { #panels { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 440px) { .agent h3 { font-size: 16px; } .count { font-size: 17px; } .agent h3 small { display: none; } }
+@media (prefers-reduced-motion: reduce) { video { transition: none; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div><h1>The same agent, at each stage of its training</h1>
+    <p>Every panel starts in the same Crafter world.</p></div>
+    <div class="worlds" id="worlds" role="group" aria-label="World"></div>
+  </header>
+  <section id="panels"></section>
+  <div class="controls">
+    <button id="play">Play</button><button id="restart">Restart</button>
+    <select id="speed" aria-label="Speed">
+      <option value=".5">0.5×</option><option value="1" selected>1×</option>
+      <option value="2">2×</option><option value="4">4×</option></select>
+    <span id="clock"></span>
+  </div>
+  <canvas id="time" role="img" aria-label="Timeline of achievements. Click to jump."></canvas>
+  <p>Each bar is one life. Each amber tick is an achievement unlocked for the first time. Click or drag to jump.
+  Keys: <kbd>Space</kbd> play, <kbd>←</kbd> <kbd>→</kbd> one step, <kbd>1</kbd>–<kbd>9</kbd> world.</p>
+  <h2 id="avgtitle"></h2>
+  <div class="scroll"><table id="avg"></table></div>
+  <p>One seed (seed 0) with the default imagination horizon of 15, recorded on fixed worlds. No world is left out.
+  Creatures move at random and the agent samples its actions, so another recording of the same world can
+  differ. These are few lives: the scores in the report come from 50 other lives per agent.</p>
+</main>
+<script>
+const AGENTS = /*DATA*/[];
+// Achievements in rough order of difficulty: survival, wood, stone, iron.
+const GROUPS = [
+  ['collect_sapling','place_plant','eat_plant','collect_drink','eat_cow','wake_up','defeat_zombie','defeat_skeleton'],
+  ['collect_wood','place_table','make_wood_pickaxe','make_wood_sword'],
+  ['collect_stone','place_stone','make_stone_pickaxe','make_stone_sword','collect_coal','place_furnace'],
+  ['collect_iron','make_iron_pickaxe','make_iron_sword','collect_diamond']];
+const STATS = ['health', 'food', 'drink', 'energy'];
+const $ = id => document.getElementById(id);
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const nice = name => name.replaceAll('_', ' ');
+const FPS = AGENTS[0].data.fps;
+// Only worlds that every agent has recorded.
+const WORLDS = Math.min(...AGENTS.map(a => a.data.episodes.length));
+let world = 0, t = 0, playing = false, last = 0, eps = [], longest = 1;
+
+// --- Build one panel per agent ---
+$('panels').style.setProperty('--n', AGENTS.length);
+for (const a of AGENTS) {
+  const el = document.createElement('article');
+  el.className = 'agent';
+  el.innerHTML = `<h3><span>${a.label} <small>${a.key ? 'steps' : 'actions'}</small></span>
+    <span class="count"><span></span><small>/22</small></span></h3>
+    <div class="screen"><video muted playsinline preload="auto"></video>
+    <div class="toast"></div><div class="end"><b></b><small></small></div></div>
+    <div class="act"></div>
+    <div class="stats">${STATS.map(s => `<span>${s}<i><b style="background:var(--${s})"></b></i></span>`).join('')}</div>
+    <div class="chips">${GROUPS.map(g => `<div>${g.map(n => `<span class="chip" data-n="${n}">${nice(n)}</span>`).join('')}</div>`).join('')}</div>`;
+  $('panels').append(el);
+  a.q = s => el.querySelector(s);
+  a.video = a.q('video');
+  a.chips = [...el.querySelectorAll('.chip')];
+  a.bars = [...el.querySelectorAll('.stats b')];
+}
+for (let w = 0; w < WORLDS; w++) {
+  const b = document.createElement('button');
+  b.textContent = `World ${w + 1}`;
+  b.onclick = () => { setWorld(w); b.blur(); };
+  $('worlds').append(b);
+}
+
+function setWorld(w) {
+  world = w;
+  eps = AGENTS.map(a => a.data.episodes[w]);
+  longest = Math.max(...eps.map(e => e.reward.length));
+  AGENTS.forEach((a, i) => { a.video.src = `${a.folder}/${eps[i].video}`; });
+  [...$('worlds').children].forEach((b, i) => b.setAttribute('aria-pressed', i === w));
+  seek(0);
+}
+
+// --- Play: one clock (t, in game steps) drives every video ---
+function seek(step) {
+  t = Math.max(0, Math.min(longest - 1, step));
+  syncVideos(true);
+  draw();
+}
+function setPlaying(on) {
+  if (on && t >= longest - 1) t = 0;
+  playing = on;
+  $('play').textContent = on ? 'Pause' : 'Play';
+  last = performance.now();
+  syncVideos(true);
+  if (on) requestAnimationFrame(tick);
+}
+function syncVideos(force) {
+  const speed = +$('speed').value;
+  AGENTS.forEach((a, i) => {
+    const end = eps[i].reward.length - 1;
+    const v = a.video;
+    const run = playing && t < end;
+    // Paused: the middle of the frame, so rounding never shows the previous one.
+    const target = run ? t / FPS : (Math.min(Math.floor(t), end) + .5) / FPS;
+    // While playing, jump only if a video has drifted by 2 steps or more.
+    if (force || Math.abs(v.currentTime - target) > (run ? 2 * Math.max(1, speed) : .4) / FPS) {
+      if (!v.seeking || force) v.currentTime = target;
+    }
+    v.playbackRate = speed;
+    if (run && v.paused) v.play().catch(() => {});
+    if (!run && !v.paused) v.pause();
+  });
+}
+function tick(now) {
+  if (!playing) return;
+  t += Math.max(0, Math.min(.25, (now - last) / 1000)) * FPS * +$('speed').value;
+  last = now;
+  if (t >= longest - 1) { t = longest - 1; setPlayingOff(); return; }
+  syncVideos(false);
+  draw();
+  requestAnimationFrame(tick);
+}
+function setPlayingOff() { setPlaying(false); draw(); }
+
+// --- Draw everything that depends on t ---
+function draw() {
+  const now = Math.floor(t + 1e-6);
+  AGENTS.forEach((a, i) => {
+    const e = eps[i], end = e.reward.length - 1, s = Math.min(now, end);
+    const got = e.unlocked.filter(u => u[0] <= s);
+    const names = new Set(got.map(u => u[1]));
+    a.q('.count span').textContent = names.size;
+    a.q('.act').textContent = 'action: ' + nice(String(a.data.action_names[e.actions[s]] ?? 'none'));
+    a.chips.forEach(c => c.classList.toggle('on', names.has(c.dataset.n)));
+    STATS.forEach((k, j) => { a.bars[j].style.width = e[k][s] / 9 * 100 + '%'; });
+    const over = now >= end;
+    a.q('.screen').classList.toggle('over', over);
+    a.q('.end').classList.toggle('died', e.died);
+    a.q('.end b').textContent = e.died ? 'Died' : 'Time limit';
+    a.q('.end small').textContent = `step ${end}, ${names.size} achievements`;
+    const fresh = got.filter(u => s - u[0] < 15).map(u => nice(u[1]));
+    a.q('.toast').classList.toggle('on', fresh.length > 0 && !over);
+    if (fresh.length) a.q('.toast').textContent = fresh.join(', ');
+  });
+  $('clock').textContent = `step ${now} / ${longest - 1}`;
+  drawTimeline();
+}
+
+const LEFT = 96, ROW = 30, TOP = 10, BOTTOM = 26;
+function drawTimeline() {
+  const c = $('time'), w = c.clientWidth, h = TOP + ROW * AGENTS.length + BOTTOM;
+  const dpr = devicePixelRatio || 1;
+  if (c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)) {
+    c.width = Math.round(w * dpr); c.height = Math.round(h * dpr); c.style.height = h + 'px';
+  }
+  const g = c.getContext('2d'), x = s => LEFT + s / (longest - 1) * (w - LEFT - 18);
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, w, h);
+  g.textBaseline = 'middle';
+  AGENTS.forEach((a, i) => {
+    const e = eps[i], end = e.reward.length - 1, y = TOP + ROW * i + ROW / 2;
+    g.font = `600 13px ${css('--sans')}`; g.textAlign = 'left'; g.fillStyle = css('--ink');
+    g.fillText(a.label, 12, y);
+    g.fillStyle = css('--line'); g.fillRect(x(0), y - 7, x(end) - x(0), 14);
+    for (const [s] of e.unlocked) {
+      g.globalAlpha = s <= t ? 1 : .4; g.fillStyle = css('--torch');
+      g.fillRect(x(s) - 1.5, y - 10, 3, 20);
+    }
+    g.globalAlpha = 1;
+    if (e.died) { g.fillStyle = css('--dead'); g.fillRect(x(end), y - 10, 3, 20); }
+  });
+  g.fillStyle = css('--muted'); g.font = `12px ${css('--mono')}`; g.textAlign = 'center';
+  const gap = [25, 50, 100, 200, 500, 1000, 2000].find(k => (longest - 1) / k * 60 < w - LEFT) || 5000;
+  for (let s = 0; s < longest; s += gap) g.fillText(s, x(s), h - 13);
+  g.fillStyle = css('--ink'); g.fillRect(x(t) - 1, 4, 2, h - BOTTOM);
+}
+
+// --- Averages over the recorded worlds ---
+const mean = xs => xs.reduce((s, v) => s + v, 0) / xs.length;
+$('avgtitle').textContent = `Average over the ${WORLDS} recorded worlds`;
+$('avg').innerHTML = '<tr><th>Training steps</th><th>Achievements per life</th><th>Different achievements</th><th>Return</th><th>Steps survived</th></tr>' +
+  AGENTS.map(a => {
+    const es = a.data.episodes.slice(0, WORLDS);
+    const all = new Set(es.flatMap(e => e.unlocked.map(u => u[1])));
+    const sum = e => e.reward.reduce((s, v) => s + v, 0);
+    return `<tr><th>${a.label}</th><td>${mean(es.map(e => e.unlocked.length)).toFixed(1)}</td><td>${all.size} of 22</td>
+      <td>${mean(es.map(sum)).toFixed(1)}</td><td>${mean(es.map(e => e.reward.length - 1)).toFixed(0)}</td></tr>`;
+  }).join('');
+
+// --- Controls ---
+$('play').onclick = () => setPlaying(!playing);
+$('restart').onclick = () => { seek(0); setPlaying(true); };
+$('speed').onchange = () => { syncVideos(true); $('speed').blur(); };
+const jump = ev => {
+  const r = $('time').getBoundingClientRect();
+  seek(Math.round((ev.clientX - r.left - LEFT) / (r.width - LEFT - 18) * (longest - 1)));
+};
+$('time').onpointerdown = ev => { setPlaying(false); $('time').setPointerCapture(ev.pointerId); jump(ev); };
+$('time').onpointermove = ev => { if (ev.buttons) jump(ev); };
+addEventListener('keydown', ev => {
+  if (ev.target.tagName === 'SELECT') return;
+  // preventDefault: Space must not also press the focused button.
+  if (ev.key === ' ') { ev.preventDefault(); if (!ev.repeat) setPlaying(!playing); }
+  if (ev.key === 'ArrowRight' || ev.key === 'ArrowLeft') {
+    ev.preventDefault(); setPlaying(false); seek(Math.floor(t) + (ev.key === 'ArrowRight' ? 1 : -1));
+  }
+  const n = +ev.key;
+  if (n >= 1 && n <= WORLDS) setWorld(n - 1);
+});
+addEventListener('resize', drawTimeline);
+
+setWorld(0);
+// #100 in the address opens the page at step 100.
+if (/^#\d+$/.test(location.hash)) seek(+location.hash.slice(1));
+</script>
+</body>
+</html>
