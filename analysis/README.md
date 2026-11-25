@@ -9,3 +9,21 @@ Our runs log episode return, not per-achievement success
 an evaluation run.
 
 Save figures to `docs/figures/` with the run ID in the file name.
+
+Three horizons on the same axes, at an equal budget (mean over seeds;
+`--max-step 500000` ignores the steps trained after a resume):
+
+```sh
+python analysis/compare_runs.py --max-step 500000 \
+    20261123-baseline-s0,20261124-baseline-s1,20261124-baseline-s2 \
+    20261124-imag5-s0,20261124-imag5-s1,20261124-imag5-s2 \
+    20261125-imag30-s0,20261125-imag30-s1,20261125-imag30-s2
+```
+
+Use `--max-step 1000000` for the 1M figure. The 2-setting figure without
+`--max-step` in `docs/results.md` was made when the runs ended at 500k:
+after the 1M logs are fetched, remake it only with `--max-step 500000`.
+
+`dashboard.py` reads the checkpoint step and the horizon of an evaluation
+from `EXPERIMENTS.md`. Keep the text `(~495k steps` in the evaluation row
+and `--agent.imag_length N` in the training row.
