@@ -72,8 +72,10 @@ logdir_of() {
 # So first remove an untracked env.txt, but only if it is byte-identical
 # to the committed copy on the target branch: nothing is lost. A file
 # that differs is kept, and the switch then stops with git's error.
+# Same for a tracked env.txt that a resumed run rewrote: undo the local
+# change only if the target branch already holds exactly that content.
 pull() {
-  echo "cd ~/$REPO && git fetch --quiet && for f in \$(git ls-files --others --exclude-standard 'runs/*/env.txt'); do git show origin/$1:\$f 2>/dev/null | cmp -s - \$f && rm \$f && echo \"removed \$f (same as committed)\" || true; done && git switch --quiet $1 && git pull --quiet --ff-only && git log --oneline -1"
+  echo "cd ~/$REPO && git fetch --quiet && for f in \$(git ls-files --others --exclude-standard 'runs/*/env.txt'); do git show origin/$1:\$f 2>/dev/null | cmp -s - \$f && rm \$f && echo \"removed \$f (same as committed)\" || true; done && for f in \$(git ls-files --modified 'runs/*/env.txt'); do git show origin/$1:\$f 2>/dev/null | cmp -s - \$f && git checkout --quiet -- \$f && echo \"restored \$f (same as committed)\" || true; done && git switch --quiet $1 && git pull --quiet --ff-only && git log --oneline -1"
 }
 
 YES=0

@@ -102,7 +102,9 @@ The cluster clone is only updated with `git pull --ff-only`. Every job
 writes `runs/<id>/env.txt` into the clone; after we commit that file,
 git would refuse to switch branch. So "pull" first deletes an untracked
 `runs/*/env.txt` only if it is identical to the committed copy on the
-target branch, and prints `removed ...`. A different file is kept and
+target branch, and prints `removed ...`. A resumed run rewrites its
+already committed `env.txt`; "pull" undoes that local change under the
+same rule and prints `restored ...`. A different file is kept and
 the switch stops with git's error. Arguments
 with spaces or shell characters are refused. The script gives up after 10 s
 if PERUN cannot be reached (VPN off). If your key has a passphrase, run
