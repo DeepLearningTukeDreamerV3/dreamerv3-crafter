@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DreamerV3 Crafter Recap</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* VOICE work: project status write-up for a student team
+   IDEA engineering datasheet: one test bench, every number traceable to a run ID
+   PICTURE score ladder: Crafter score of every agent as bars against the paper's band
+   COLOUR white ground, black ink, cobalt #1240e0 strip and lead marks, orange for horizon 5, pale #eef2ff zones
+   TYPE Space Grotesk 600 + Inter
+   LAYOUT laptop: cobalt title strip, then ladder (wide) beside key figures; phone: title, ladder, figures stacked */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#0a0d18);--ink:light-dark(#0b0d12,#eef1f8);--mute:light-dark(#4a5263,#a3abbd);--line:light-dark(#d9deea,#262c40);--zone:light-dark(#eef2ff,#131a33);--blue:light-dark(#1240e0,#6f8dff);--org:light-dark(#c4560a,#ff9a4d);--strip:light-dark(#1240e0,#0f1d5c);--band:light-dark(rgba(18,64,224,.10),rgba(111,141,255,.16))}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 Inter,system-ui,sans-serif;margin:0;overflow-x:clip}
+h1,h2,h3{font-family:"Space Grotesk",Inter,sans-serif;font-weight:600;letter-spacing:-.02em;line-height:1.1;margin:0}
+h1{font-size:clamp(30px,4.4vw,48px)}
+h2{font-size:clamp(22px,2.6vw,28px);margin-bottom:14px}
+h3{font-size:18px;margin-bottom:8px}
+p{margin:0 0 12px;max-width:70ch}
+.band{padding-block:clamp(26px,4vw,56px);padding-left:max(5vw,16px,env(safe-area-inset-left,0px));padding-right:max(5vw,16px,env(safe-area-inset-right,0px))}
+.in{max-width:1240px;margin:0 auto}
+.strip{background:var(--strip);color:#fff;margin-top:calc(-1*env(safe-area-inset-top,0px));padding-top:calc(env(safe-area-inset-top,0px) + 2.2rem)}
+.strip p{color:#dfe6ff;font-size:17px;margin-top:12px}
+.zone{background:var(--zone)}
+.grid2{display:grid;gap:clamp(20px,3vw,44px);grid-template-columns:minmax(0,1fr)}
+@media(min-width:900px){.grid2{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}.half{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.ladder{display:grid;gap:6px;position:relative}
+.row{display:grid;grid-template-columns:minmax(8.5em,13em) minmax(0,1fr) 4.2em;align-items:center;gap:10px;font-size:14px}
+.track{position:relative;height:22px}
+.bar{position:absolute;left:0;top:3px;bottom:3px;background:var(--blue);border-radius:0 4px 4px 0}
+.bar.o{background:var(--org)}.bar.g{background:var(--mute)}
+.paper{position:absolute;top:-4px;bottom:-4px;background:var(--band);border-left:1px dashed var(--blue);border-right:1px dashed var(--blue)}
+.val{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;font-weight:600}
+.lab{color:var(--ink)}.lab small{color:var(--mute);display:block;font-size:13px;line-height:1.2}
+.sep{border-top:1px solid var(--line);margin:6px 0}
+.note{font-size:13px;color:var(--mute);margin-top:10px}
+.figs{display:grid;grid-template-columns:repeat(auto-fit,minmax(9em,1fr));gap:12px;align-content:start}
+.fg{border:1px solid var(--line);background:var(--bg);padding:14px}
+.fg b{display:block;font:600 clamp(26px,3vw,34px)/1 "Space Grotesk",sans-serif;letter-spacing:-.02em;white-space:nowrap}
+.fg span{font-size:13px;color:var(--mute)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--mute);font-size:13px}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.fig{position:relative;min-height:300px}.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+svg text{font:13px Inter,sans-serif;fill:var(--mute);paint-order:stroke;stroke:var(--bg);stroke-width:4px}
+ol.steps{margin:0;padding-left:1.2em}ol.steps li{margin-bottom:8px}
+.ok{color:var(--blue);font-weight:600;white-space:nowrap}.todo{color:var(--org);font-weight:600;white-space:nowrap}
+code{font-size:.9em;overflow-wrap:anywhere}
+@media(max-width:600px){table{font-size:13px}th,td{padding:6px 4px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--line)}.stack td{display:flex;justify-content:space-between;gap:12px;border:0;padding:3px 0}.stack td::before{content:attr(data-l);color:var(--mute)}.row{grid-template-columns:minmax(7em,9em) minmax(0,1fr) 3.6em}}
+</style>
+</head>
+<body>
+
+<header class="band strip"><div class="in">
+<h1>DreamerV3 on Crafter: two of three seeds reach the paper's score at half its steps</h1>
+<p>State on 2026-11-25. All 12 deliverables are done: experiments, GPU evidence, fresh-clone check, final report (<code>docs/report/report.md</code>) and demo script (<code>docs/report/demo.md</code>). What remains is for the team: read the report and surveys, rehearse the demo.</p>
+</div></header>
+
+<section class="band"><div class="in grid2">
+<div>
+<h2>Crafter score, same 50 worlds for every agent</h2>
+<div class="ladder" id="ladder"></div>
+<p class="note">Shaded band: paper, 14.5 ± 1.6 % at 1M steps, 10 seeds (arXiv 2301.04104 v1, Table M.1). Score = geometric mean of the 22 achievement success rates.</p>
+</div>
+<div class="figs">
+<div class="fg"><b>13.7 / 14.4 %</b><span>baseline seeds 0 and 1 at ~495k steps</span></div>
+<div class="fg"><b>11.3 ± 4.9 %</b><span>baseline mean over 3 seeds</span></div>
+<div class="fg"><b>5.6 %</b><span>seed 2: stuck before stone tools</span></div>
+<div class="fg"><b>9.4 ± 2.3 %</b><span>horizon 5 mean, inside the spread</span></div>
+<div class="fg"><b>~9 h</b><span>per 500k run on one H200, 16 env steps/s</span></div>
+<div class="fg"><b>1.4 %</b><span>random agent; paper says 1.6 %</span></div>
+</div>
+</div></section>
+
+<section class="band zone"><div class="in grid2 half">
+<div>
+<h2>What we did and why</h2>
+<p><b>Goal.</b> Train DreamerV3 on Crafter with the official config, check that it learns, and look inside its world model: how well does it predict the game, and how does one design choice, the imagination horizon, change what the agent learns.</p>
+<p><b>Method.</b> Upstream code at commit <code>e3f0224</code>, unchanged. Official <code>crafter</code> config, <code>train_ratio 512</code>. One NVIDIA H200 per run on the PERUN cluster (SLURM, Apptainer). Every run has an ID and a row in <code>EXPERIMENTS.md</code> before it starts.</p>
+<p><b>Budget.</b> 500k env steps and 3 seeds per setting, against the paper's 1M and 10. 1M would take ~18 h per run. Checkpoints are saved every 15 min, so "500k" means ~495k.</p>
+</div>
+<div>
+<h3>How DreamerV3 learns</h3>
+<ol class="steps">
+<li><b>Act and record.</b> The agent plays the real game; frames, actions and rewards go into a replay buffer.</li>
+<li><b>Learn the world model</b> from replay batches (16 × 64 steps): compress each frame to a latent state, predict the next one from the action, decode frame, reward and "episode continues".</li>
+<li><b>Imagine.</b> From real latent states, roll forward 15 imagined steps with no real game.</li>
+<li><b>Train actor and critic on imagination only.</b> Real data trains only the world model.</li>
+</ol>
+</div>
+</div></section>
+
+<section class="band"><div class="in grid2">
+<div>
+<h2>Horizon 5 learns quick rewards first; horizon 15 catches up after 300k</h2>
+<div class="fig" id="curve"></div>
+<p class="note">Training return, mean of the last 50 episodes before each step count, mean over 3 seeds. Bars: ± 1 standard deviation across seeds.</p>
+</div>
+<div>
+<h3>Sensitivity: one flag, <code>--agent.imag_length 5</code></h3>
+<div class="scroll"><table>
+<thead><tr><th>Eval at ~495k</th><th>Horizon 15</th><th>Horizon 5</th></tr></thead>
+<tbody>
+<tr><td>Return</td><td class="n">7.82 ± 1.65</td><td class="n">7.47 ± 0.31</td></tr>
+<tr><td>Crafter score</td><td class="n">11.3 ± 4.9 %</td><td class="n">9.4 ± 2.3 %</td></tr>
+<tr><td>Defeat zombie</td><td class="n">35 %</td><td class="n">57 %</td></tr>
+<tr><td>Place furnace</td><td class="n">25 %</td><td class="n">3 %</td></tr>
+<tr><td>Wood pickaxe</td><td class="n">63 %</td><td class="n">79 %</td></tr>
+</tbody></table></div>
+<p class="note">± is across 3 seeds.</p>
+<p>With 5 imagined steps, a long chain like wood → table → pickaxe pays its reward beyond the rollout, so the actor sees it only through the critic. Quick rewards such as a zombie kill fit inside 5 steps. The means are too close to call one setting better; the two best agents use horizon 15, and horizon 5 is more consistent across seeds.</p>
+</div>
+</div></section>
+
+<section class="band zone"><div class="in grid2 half">
+<div>
+<h2>Inside the world model: open-loop prediction</h2>
+<p>The model sees 32 real frames, then predicts the next 32 from the actions alone. Pixel error against the real frames:</p>
+<div class="scroll"><table>
+<thead><tr><th>Checkpoint</th><th>1 step</th><th>8 steps</th><th>32 steps</th><th>Reward per window, predicted / real</th></tr></thead>
+<tbody>
+<tr><td>~213k</td><td class="n">0.011</td><td class="n">0.023</td><td class="n">0.032</td><td class="n">0.53 / 0.26</td></tr>
+<tr><td>~495k</td><td class="n">0.020</td><td class="n">0.029</td><td class="n">0.048</td><td class="n">0.50 / 0.70</td></tr>
+</tbody></table></div>
+</div>
+<div>
+<h3>What it shows</h3>
+<p>Error grows with each imagined step because mistakes add up. At 213k the model beats "copy the last frame" from step 7 on; the player and terrain survive, trees and cows fade, and reward is predicted twice too high.</p>
+<p>The 495k error is higher, but the test is not the same: that agent survives longer and reaches night, which Crafter draws dark with random noise. Reward flips from too high to too low. No window contains a death, so death prediction is untested.</p>
+<p>During training, imagined reward per step was 1.6× the real one at 213k (0.035 vs 0.022). At ~495k they agree: 0.047 vs 0.045.</p>
+</div>
+</div></section>
+
+<section class="band"><div class="in">
+<h2>Deliverables</h2>
+<div class="scroll"><table class="stack">
+<thead><tr><th>#</th><th>Deliverable</th><th>State</th><th>To do</th></tr></thead>
+<tbody id="deliv"></tbody></table></div>
+<p class="note">Limits: 3 of the paper's 10 seeds, half its steps; evaluation is 50 episodes of one checkpoint, not the benchmark's all-training-episodes protocol; the horizon explanation is not tested directly. Details in <code>docs/recap.md</code>, <code>docs/results.md</code> and <code>docs/failures.md</code> of the repository.</p>
+</div></section>
+
+<script>
+{
+const rows=[
+ ["Random agent","0 steps",1.4,"g"],
+ ["Early checkpoint","~40–52k",2.7,"g"],
+ ["Baseline seed 0","~213k",4.3,""],
+ ["Horizon 5 seed 0","~210k",3.4,"o"],
+ null,
+ ["Baseline seed 0","~495k",13.7,""],
+ ["Baseline seed 1","~495k",14.4,""],
+ ["Baseline seed 2","~495k, stuck",5.6,""],
+ ["Horizon 5 seed 0","~495k",7.8,"o"],
+ ["Horizon 5 seed 1","~495k",12.0,"o"],
+ ["Horizon 5 seed 2","~495k",8.4,"o"]];
+const MAX=18,pct=v=>(v/MAX*100).toFixed(2)+"%";
+document.getElementById("ladder").innerHTML=rows.map(r=>r?`<div class="row"><div class="lab">${r[0]}<small>${r[1]}</small></div><div class="track"><div class="paper" style="left:${pct(12.9)};width:${pct(3.2)}"></div><div class="bar ${r[3]}" style="width:${pct(r[2])}"></div></div><div class="val">${r[2].toFixed(1)} %</div></div>`:'<div class="sep"></div>').join("");
+
+const deliv=[
+ [1,"Installation, documented environment","done","fresh clone passes (same laptop)"],
+ [2,"Reproduced baseline run","done","500k, 3 seeds"],
+ [3,"Architecture / data-flow diagram","done","docs/architecture.md"],
+ [4,"Training logs and learning curves","done","runs/, docs/figures/"],
+ [5,"Prediction / imagination experiment","done","optional: same episodes for both checkpoints"],
+ [6,"Random and early-checkpoint baselines","done","–"],
+ [7,"Controlled sensitivity experiment","done","3 seeds"],
+ [8,"SLURM scripts and GPU evidence","done","docs/gpu-evidence.md"],
+ [9,"Error analysis with failure cases","done","docs/failures.md"],
+ [10,"Reproducible repository with README","done","README results section"],
+ [11,"Final technical report","done","docs/report/report.md; every member reads it"],
+ [12,"10–15 min demo","done","docs/report/demo.md; rehearse with a timer"]];
+document.getElementById("deliv").innerHTML=deliv.map(d=>`<tr><td data-l="#" class="n">${d[0]}</td><td data-l="Deliverable">${d[1]}</td><td data-l="State" class="${d[2]==="done"?"ok":"todo"}">${d[2]}</td><td data-l="To do">${d[3]}</td></tr>`).join("");
+
+const xs=[100,213,300,400,500];
+const A={name:"Horizon 15 (baseline)",c:"var(--blue)",m:[3.51,4.33,5.55,6.63,7.87],s:[.08,.17,.92,1.31,1.74]};
+const B={name:"Horizon 5",c:"var(--org)",m:[3.71,4.71,5.28,6.17,7.24],s:[.39,.75,.79,.53,.10]};
+const s=document.getElementById("curve");
+const draw=()=>{const W=s.clientWidth,H=s.clientHeight,L=40,R=W<520?16:150,T=14,Bm=34;
+ const x=v=>L+(v-100)/400*(W-L-R),y=v=>T+(10-v)/8*(H-T-Bm);
+ let g="";
+ for(let v=2;v<=10;v+=2)g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end">${v}</text>`;
+ xs.forEach(v=>{if(W<420&&v===213)return;g+=`<text x="${x(v)}" y="${H-12}" text-anchor="middle">${v}k</text>`});
+ [A,B].forEach((S,k)=>{const off=k?4:-4;
+  S.m.forEach((m,i)=>g+=`<line x1="${x(xs[i])+off}" x2="${x(xs[i])+off}" y1="${y(m-S.s[i])}" y2="${y(m+S.s[i])}" stroke="${S.c}" stroke-width="2" opacity=".45"/>`);
+  g+=`<polyline fill="none" stroke="${S.c}" stroke-width="2.5" points="${S.m.map((m,i)=>x(xs[i])+off+","+y(m)).join(" ")}"/>`;
+  S.m.forEach((m,i)=>g+=`<circle cx="${x(xs[i])+off}" cy="${y(m)}" r="4.5" fill="${S.c}" stroke="var(--bg)" stroke-width="2"/>`);
+  if(W>=520)g+=`<text x="${x(500)+12}" y="${y(S.m[4])+(k?14:-4)}" style="fill:${S.c};font-weight:600">${S.name} ${S.m[4]}</text>`;});
+ if(W<520)g+=`<text x="${L+4}" y="${T+12}" style="fill:var(--blue);font-weight:600">Horizon 15</text><text x="${L+90}" y="${T+12}" style="fill:var(--org);font-weight:600">Horizon 5</text>`;
+ g+=`<text x="${W-R}" y="${H-12+0}" text-anchor="end" opacity="0">.</text>`;
+ s.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Training return vs env steps for both horizons">${g}</svg>`;};
+const ro=new ResizeObserver(draw);ro.observe(s);
+}
+</script>
+</body>
+</html>
