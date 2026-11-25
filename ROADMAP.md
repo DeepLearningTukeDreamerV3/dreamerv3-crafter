@@ -191,7 +191,7 @@ No new experiments this week. It is the buffer for reruns.
 - [x] 8. SLURM scripts and GPU execution evidence (PERUN)
 - [x] 9. Error analysis with failure cases
 - [ ] 10. Reproducible repository with README
-- [ ] 11. Final technical report
+- [x] 11. Final technical report (`docs/report/report.md`)
 - [ ] 12. 10–15 min demo
 
 ## Risks
