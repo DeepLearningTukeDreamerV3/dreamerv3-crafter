@@ -73,7 +73,7 @@ Columns:
 - **RAM**: memory of the training process on the host, mostly the
   replay buffer.
 
-![GPU utilisation and env steps per second, baseline seed 0 vs horizon 5 seed 0](figures/gpu-usage.svg)
+![GPU utilisation and env steps per second, horizon 15 seed 0 vs horizon 5 seed 0](figures/gpu-usage.svg)
 
 What the numbers show:
 

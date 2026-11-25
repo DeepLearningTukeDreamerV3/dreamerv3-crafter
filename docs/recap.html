@@ -69,8 +69,8 @@ code{font-size:.9em;overflow-wrap:anywhere}
 <p class="note">Shaded band: paper, 14.5 ± 1.6 % at 1M steps, 10 seeds (arXiv 2301.04104 v1, Table M.1). Score = geometric mean of the 22 achievement success rates.</p>
 </div>
 <div class="figs">
-<div class="fg"><b>13.7 / 14.4 %</b><span>baseline seeds 0 and 1 at ~495k steps</span></div>
-<div class="fg"><b>11.3 ± 4.9 %</b><span>baseline mean over 3 seeds</span></div>
+<div class="fg"><b>13.7 / 14.4 %</b><span>horizon 15 seeds 0 and 1 at ~495k steps</span></div>
+<div class="fg"><b>11.3 ± 4.9 %</b><span>horizon 15 mean over 3 seeds</span></div>
 <div class="fg"><b>5.6 %</b><span>seed 2: stuck before stone tools</span></div>
 <div class="fg"><b>9.4 ± 2.3 %</b><span>horizon 5 mean, inside the spread</span></div>
 <div class="fg"><b>~9 h</b><span>per 500k run on one H200, 16 env steps/s</span></div>
@@ -150,12 +150,12 @@ code{font-size:.9em;overflow-wrap:anywhere}
 const rows=[
  ["Random agent","0 steps",1.4,"g"],
  ["Early checkpoint","~40–52k",2.7,"g"],
- ["Baseline seed 0","~213k",4.3,""],
+ ["Horizon 15 seed 0","~213k",4.3,""],
  ["Horizon 5 seed 0","~210k",3.4,"o"],
  null,
- ["Baseline seed 0","~495k",13.7,""],
- ["Baseline seed 1","~495k",14.4,""],
- ["Baseline seed 2","~495k, stuck",5.6,""],
+ ["Horizon 15 seed 0","~495k",13.7,""],
+ ["Horizon 15 seed 1","~495k",14.4,""],
+ ["Horizon 15 seed 2","~495k, stuck",5.6,""],
  ["Horizon 5 seed 0","~495k",7.8,"o"],
  ["Horizon 5 seed 1","~495k",12.0,"o"],
  ["Horizon 5 seed 2","~495k",8.4,"o"]];
@@ -178,7 +178,7 @@ const deliv=[
 document.getElementById("deliv").innerHTML=deliv.map(d=>`<tr><td data-l="#" class="n">${d[0]}</td><td data-l="Deliverable">${d[1]}</td><td data-l="State" class="${d[2]==="done"?"ok":"todo"}">${d[2]}</td><td data-l="To do">${d[3]}</td></tr>`).join("");
 
 const xs=[100,213,300,400,500];
-const A={name:"Horizon 15 (baseline)",c:"var(--blue)",m:[3.51,4.33,5.55,6.63,7.87],s:[.08,.17,.92,1.31,1.74]};
+const A={name:"Horizon 15 (default)",c:"var(--blue)",m:[3.51,4.33,5.55,6.63,7.87],s:[.08,.17,.92,1.31,1.74]};
 const B={name:"Horizon 5",c:"var(--org)",m:[3.71,4.71,5.28,6.17,7.24],s:[.39,.75,.79,.53,.10]};
 const s=document.getElementById("curve");
 const draw=()=>{const W=s.clientWidth,H=s.clientHeight,L=40,R=W<520?16:150,T=14,Bm=34;

@@ -109,8 +109,14 @@ Plain-language definitions. Add terms when you meet new ones.
   by the world model and the actor, without touching the real environment.
   Length: `imag_length` (15), the **imagination horizon**. Our
   sensitivity run uses 5 (`docs/results.md`).
+- **Horizon 15 (default)** / **horizon 5** — our two settings. Horizon
+  15 is the official `crafter` config, unchanged. Horizon 5 is the same
+  config with `--agent.imag_length 5`. Both learn from real play and
+  from imagination; only the imagination length differs. The horizon 15
+  runs were first called "baseline", and their run IDs keep that word
+  (`20261123-baseline-s0`, `20261124-baseline-s1`, `-s2`).
 - **Sensitivity experiment** — a run that changes one setting only, to
-  see its effect against the baseline.
+  see its effect against the default (here: horizon 5 vs horizon 15).
 - **Open-loop prediction** — start from real observations, then predict the
   future using only actions. Shown as `openloop/*` videos in the logs, and
   made from a checkpoint by `scripts/openloop.py` (Task 4).

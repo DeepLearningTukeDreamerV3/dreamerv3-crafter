@@ -212,7 +212,7 @@ no encoder, no decoder, and no real reward is involved.
 - The world model does not learn from imagination, so a bad imagined
   rollout cannot make the model worse; it can only mislead the actor.
 
-How the two sides compare in our main run (baseline seed 0, mean of
+How the two sides compare in our main run (horizon 15 seed 0, mean of
 the first 3 and last 10 log lines; `metrics.jsonl` and `scores.jsonl`):
 
 | Quantity | ~3k steps | ~213k | ~495k |
@@ -228,7 +228,7 @@ agent got in the real game: it was optimistic. At ~495k imagined and
 real reward per step agree (0.047 vs 0.045). The actor became nearly
 deterministic early (entropy 0.19 nats) and stays so.
 
-![Real side (top: return and world-model losses) and imagined side (bottom: what actor and critic see), baseline seed 0](../figures/20261123-baseline-s0-imagination.svg)
+![Real side (top: return and world-model losses) and imagined side (bottom: what actor and critic see), horizon 15 seed 0](../figures/20261123-baseline-s0-imagination.svg)
 
 ## 5. Setup and HPC workflow
 
@@ -274,7 +274,7 @@ run started; failed runs keep their rows.
 
 | Run | GPU busy | Env steps/s | Trained steps/s | Wall-clock to 500k |
 |---|---|---|---|---|
-| Baseline, seeds 0 / 1 / 2 | 88 / 88 / 89 % | 15.9 / 15.9 / 16.0 | ~8,150 | ~9 h |
+| Horizon 15, seeds 0 / 1 / 2 | 88 / 88 / 89 % | 15.9 / 15.9 / 16.0 | ~8,150 | ~9 h |
 | Horizon 5, seeds 0 / 1 / 2 | 87 / 88 / 87 % | 17.8 / 17.9 / 17.7 | ~9,100 | ~8 h |
 | Smoke test (debug config) | 15 % | 181 | 1,448 | 11 min to 100k |
 
@@ -284,17 +284,21 @@ speed, so we ran seeds in parallel instead of trying to speed up one
 run. Horizon 5 is ~12 % faster because its imagined rollouts are 3 times
 shorter; the world-model update is the same in both.
 
-![GPU utilisation and env steps per second, baseline seed 0 (blue) vs horizon 5 seed 0 (orange)](../figures/gpu-usage.svg)
+![GPU utilisation and env steps per second, horizon 15 seed 0 (blue) vs horizon 5 seed 0 (orange)](../figures/gpu-usage.svg)
 
 ## 6. Experiments
 
 | # | Experiment | Runs | Question |
 |---|---|---|---|
-| E1 | Baseline, official config | `20261123-baseline-s0`, `20261124-baseline-s1`, `-s2` | Does DreamerV3 learn Crafter on our setup? |
+| E1 | Horizon 15 (default), official config | `20261123-baseline-s0`, `20261124-baseline-s1`, `-s2` | Does DreamerV3 learn Crafter on our setup? |
 | E2 | Reference agents | `20261124-eval-random`, `20261124-eval-early-s0` | Is the trained agent better than random and than an early checkpoint? |
 | E3 | Open-loop prediction | `20261124-openloop-s0` (~213k), `20261125-openloop500k-s0` (~495k) | How far ahead can the world model predict frames, rewards and episode ends? |
 | E4 | Sensitivity: imagination horizon | `20261124-imag5-s0`, `-s1`, `-s2` (`--agent.imag_length 5`, nothing else changed) | What does the horizon change in what the agent learns? |
 | E5 | Evaluation of every checkpoint | `*-eval-*`, `*-eval500k-*` | Same 50 Crafter worlds (world seed 100), eval mode, `scripts/eval_agent.py` |
+
+E1 and E4 both learn from real play and from imagination; they differ
+only in the imagination length (15 or 5 steps). The E1 run IDs keep the
+word `baseline` from before the sensitivity runs existed.
 
 Crafter gives +1 the first time each of 22 achievements is unlocked in
 an episode and ±0.1 per health point change. The *Crafter score* is the
@@ -305,12 +309,12 @@ achievements more than many of the easy ones.
 
 ### 7.1 Return vs environment steps
 
-![Training return (mean over 3 seeds, with spread) and losses, baseline vs horizon 5](../figures/20261124-imag5-s0-vs-20261123-baseline-s0-3seeds.svg)
+![Training return (mean over 3 seeds, with spread) and losses, horizon 15 vs horizon 5](../figures/20261124-imag5-s0-vs-20261123-baseline-s0-3seeds.svg)
 
 Training return, mean of the last 50 episodes before each step count,
 mean ± sd across 3 seeds:
 
-| Env steps | Horizon 15 (baseline) | Horizon 5 |
+| Env steps | Horizon 15 (default) | Horizon 5 |
 |---|---|---|
 | 100k | 3.51 ± 0.08 | 3.71 ± 0.39 |
 | 213k | 4.33 ± 0.17 | 4.71 ± 0.75 |
@@ -332,28 +336,28 @@ Return still rises at 500k in every run: training was not finished.
 | Horizon 5, 3 seeds | ~495k | 7.47 ± 0.31 | 9.4 ± 2.3 % | not measured |
 
 ± is across the 50 episodes for single agents and across seeds for the
-three-seed rows. Per seed at ~495k: baseline 8.78 / 8.76 / 5.92 return,
+three-seed rows. Per seed at ~495k: horizon 15 8.78 / 8.76 / 5.92 return,
 13.7 / 14.4 / 5.6 % score; horizon 5 7.22 / 7.82 / 7.36, 7.8 / 12.0 /
 8.4 %. Each stage beats the one before. At ~495k the agents also
 survive longer than random (217 vs 175 steps per episode); at 213k
 they did not yet.
 
-What the agents learned at ~495k (success rate, baseline mean over 3
+What the agents learned at ~495k (success rate, horizon 15 mean over 3
 seeds): collect wood 98 %, place table 96 %, collect drink 86 %, wood
 pickaxe 63 %, collect stone 49 %, defeat zombie 35 %, place furnace
 25 %, collect coal 17 %. Iron and diamond: never. Full table:
 [`docs/results.md`](../results.md).
 
-**Baseline seed 2 is stuck one stage behind**: it makes a wood pickaxe
+**Horizon 15 seed 2 is stuck one stage behind**: it makes a wood pickaxe
 in 8 % of episodes (seeds 0 and 1: ~90 %), so it never mines stone, and
 every later achievement stays at 0. Most of the spread across seeds
 comes from this one run.
 
 ### 7.3 World-model losses
 
-![All eight losses of baseline seed 0 over 500k steps](../figures/20261123-baseline-s0-losses.svg)
+![All eight losses of horizon 15 seed 0 over 500k steps](../figures/20261123-baseline-s0-losses.svg)
 
-Mean of the first 3 and last 10 log lines, baseline seed 0:
+Mean of the first 3 and last 10 log lines, horizon 15 seed 0:
 
 | Loss | ~3k steps | ~213k | ~495k |
 |---|---|---|---|
@@ -401,7 +405,7 @@ same eval worlds.
 | Wood pickaxe | 63 % (seed 2: 8 %) | 79 % |
 | Env steps per second | 15.9 | 17.8 |
 
-- **Early, horizon 5 is ahead** (100k and 213k); from ~300k the baseline
+- **Early, horizon 5 is ahead** (100k and 213k); from ~300k horizon 15
   is.
 - **At ~495k the means are inside each other's spread.** With 3 seeds
   we cannot call one setting better on average.
