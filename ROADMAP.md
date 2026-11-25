@@ -147,6 +147,9 @@ committed.
       Launched: `20261124-imag5-s0`, job 172542.
 - [x] Fill the evaluation table (assignment A.7) except the sensitivity row.
       Done in `docs/results.md`.
+- [ ] Extra (2026-11-25): resume the 6 runs to 1M env steps, and add
+      imagination horizon 30 (`20261125-imag30-s0/s1/s2`, also to 1M).
+      IDs and status in `EXPERIMENTS.md`.
 
 ## Week 7 — M4 / M5: sensitivity results and failures
 
