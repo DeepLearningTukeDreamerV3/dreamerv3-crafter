@@ -60,7 +60,8 @@ EXPERIMENTS.md       every run, including failed ones
 docs/                learning path, glossary, git workflow, architecture, HPC,
                      recap.md (whole project on one page: how, results, what is left),
                      results (evaluation table, paper comparison),
-                     failure cases (Task 8), gpu-evidence.md (PERUN jobs, GPU use), report
+                     failure cases (Task 8), gpu-evidence.md (PERUN jobs, GPU use)
+docs/report/         report.md (final technical report), demo.md (10–15 min demo script)
 scripts/             setup check, env snapshot, random agent, issue list,
                      perun.sh (fixed PERUN commands, run from the laptop),
                      eval_agent.py (checkpoint or random agent on fixed worlds, Task 6),
