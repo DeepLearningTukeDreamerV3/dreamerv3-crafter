@@ -61,6 +61,7 @@ table { border-collapse: collapse; font-variant-numeric: tabular-nums; }
 th, td { text-align: right; padding: 6px 18px 6px 0; border-bottom: 1px solid var(--line); font-weight: 400; white-space: nowrap; }
 th { color: var(--muted); } th:first-child { text-align: left; color: var(--ink); font-weight: 600; }
 kbd { font: 12px var(--mono); border: 1px solid var(--line); border-radius: 3px; padding: 0 5px; }
+a { color: var(--torch); }
 @media (max-width: 1000px) { #panels { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 440px) { .agent h3 { font-size: 16px; } .count { font-size: 17px; } .agent h3 small { display: none; } }
 @media (prefers-reduced-motion: reduce) { video { transition: none; } }
@@ -70,7 +71,7 @@ kbd { font: 12px var(--mono); border: 1px solid var(--line); border-radius: 3px;
 <main>
   <header>
     <div><h1>The same agent, at each stage of its training</h1>
-    <p>Every panel starts in the same Crafter world.</p></div>
+    <p>Every panel starts in the same Crafter world. <a href="https://deeplearningtukedreamerv3.github.io/dreamerv3-crafter/">All results</a></p></div>
     <div class="worlds" id="worlds" role="group" aria-label="World"></div>
   </header>
   <section id="panels"></section>
