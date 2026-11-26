@@ -56,9 +56,10 @@ Main findings:
   behind (20.1 %); horizon 5 ends last (18.2 %) and rarely builds a
   furnace, the longest chain. Every horizon 15 seed beats every seed of
   the other two settings on return.
-- **The GPU is the bottleneck**: busy 87–89 % of the time in every
-  production run, ~16 environment steps per second, ~9 h per 500k-step
-  run.
+- **The GPU is the bottleneck**: busy 84–89 % of the time in every
+  production run, ~16 environment steps per second, ~9 h per 500k
+  steps. Host RAM grows with the replay buffer, ~6 GB per 100k steps,
+  which is what stopped the runs before 1M.
 
 ## 2. Background: world models
 
@@ -220,18 +221,23 @@ no encoder, no decoder, and no real reward is involved.
 How the two sides compare in our main run (horizon 15 seed 0, mean of
 the first 3 and last 10 log lines; `metrics.jsonl` and `scores.jsonl`):
 
-| Quantity | ~3k steps | ~213k | ~495k |
-|---|---|---|---|
-| Imagined reward per step (`train/rew`) | 0.036 | 0.035 | 0.047 |
-| Real reward per step (last 100 training episodes) | – | 0.022 | 0.045 |
-| Actor entropy in imagination, nats (uniform: 2.83) | 1.18 | 0.19 | 0.28 |
-| Critic value of imagined states | 1.33 | 1.65 | 2.43 |
-| Mean continuation weight over 16 imagined steps | 0.93 | 0.95 | 0.95 |
+| Quantity | ~3k steps | ~213k | ~495k | ~960k |
+|---|---|---|---|---|
+| Imagined reward per step (`train/rew`) | 0.036 | 0.035 | 0.047 | 0.059 |
+| Real reward per step (last 100 training episodes) | – | 0.022 | 0.045 | 0.048 |
+| Actor entropy in imagination, nats (uniform: 2.83) | 1.18 | 0.19 | 0.28 | 0.30 |
+| Critic value of imagined states | 1.33 | 1.65 | 2.43 | 3.19 |
+| Mean continuation weight over 16 imagined steps | 0.93 | 0.95 | 0.95 | 0.95 |
 
 At ~213k the model imagined 1.6 times more reward per step than the
 agent got in the real game: it was optimistic. At ~495k imagined and
-real reward per step agree (0.047 vs 0.045). The actor became nearly
-deterministic early (entropy 0.19 nats) and stays so.
+real reward per step agree (0.047 vs 0.045). At ~960k imagination is
+optimistic again, 1.2 times the real reward (0.059 vs 0.048): imagined
+reward keeps rising while the real one levels off. The open-loop test
+at ~960k points the other way (predicted reward per window too low,
+section 7.4); it uses recorded actions, while `train/rew` uses the
+actor's own imagined actions, so the two need not agree. The actor
+became nearly deterministic early (entropy 0.19 nats) and stays so.
 
 ![Real side (top: return and world-model losses) and imagined side (bottom: what actor and critic see), horizon 15 seed 0](../figures/20261123-baseline-s0-imagination.svg)
 
@@ -262,7 +268,7 @@ cluster. Details: [`docs/hpc.md`](../hpc.md), evidence:
 | 1. Local test | `scripts/check_local.py`, CPU debug run, in Docker | – | install problems before the cluster |
 | 2. Interactive `srun` | `slurm/00_interactive.sh` | not recorded | (see gaps) |
 | 3. Smoke test | `slurm/01_smoke.sbatch`, debug config | 148884, 172451 | 148884: upstream ignores `--run.duration`, the job hit its 30 min limit. Fixed with `--run.steps` |
-| 4. Production | `slurm/02_train.sbatch`, `crafter` config | 172453, 173386, 172542, 173387, 173430–173433; 175280–175283, 175290–175297 | six runs to ~495k steps; then all six resumed and three horizon 30 runs, to ~960k. All nine 1M jobs were killed for exceeding 64 GB of RAM while saving a checkpoint |
+| 4. Production | `slurm/02_train.sbatch`, `crafter` config | 172453, 173386, 172542, 173387, 173430–173433; 175280, 175282, 175283, 175290–175292, 175295–175297 | six runs to ~495k steps; then all six resumed and three horizon 30 runs, to ~960k. All nine 1M jobs were killed for exceeding 64 GB of RAM while saving a checkpoint |
 | Evaluation | `slurm/03_eval.sbatch` | 172543–172545, 173381, 175203–175208, 176615–176622, 176678 | – |
 | Open loop | `slurm/04_openloop.sbatch` | 172547, 172548, 175209, 176679 | 172547 crashed on GPU only (JAX transfer guard); fixed before the long runs needed it |
 
@@ -277,19 +283,27 @@ run started; failed runs keep their rows.
 
 ### 5.3 GPU use and wall-clock time
 
-Measured on the runs to 500k.
+Measured over each whole run, up to ~960k steps
+([`gpu-evidence.md`](../gpu-evidence.md)).
 
-| Run | GPU busy | Env steps/s | Trained steps/s | Wall-clock to 500k |
+| Run | GPU busy | Env steps/s | Trained steps/s | Time per 500k steps |
 |---|---|---|---|---|
-| Horizon 15, seeds 0 / 1 / 2 | 88 / 88 / 89 % | 15.9 / 15.9 / 16.0 | ~8,150 | ~9 h |
-| Horizon 5, seeds 0 / 1 / 2 | 87 / 88 / 87 % | 17.8 / 17.9 / 17.7 | ~9,100 | ~8 h |
+| Horizon 15, seeds 0 / 1 / 2 | 85 / 88 / 88 % | 15.9 / 16.0 / 16.0 | ~8,200 | ~9 h |
+| Horizon 5, seeds 0 / 1 / 2 | 84 / 85 / 87 % | 17.8 / 17.8 / 17.7 | ~9,100 | ~8 h |
+| Horizon 30, seeds 0 / 1 / 2 | 89 / 89 / 88 % | 13.9 / 13.9 / 13.9 | ~7,100 | ~10 h |
 | Smoke test (debug config) | 15 % | 181 | 1,448 | 11 min to 100k |
 
-About 50 GPU-hours of training plus ~2 GPU-hours of evaluation and
-open-loop jobs. With `train_ratio 512` the GPU, not the game, limits
-speed, so we ran seeds in parallel instead of trying to speed up one
-run. Horizon 5 is ~12 % faster because its imagined rollouts are 3 times
-shorter; the world-model update is the same in both.
+About 150 GPU-hours of training plus ~3 GPU-hours of evaluation,
+open-loop and video jobs. With `train_ratio 512` the GPU, not the game,
+limits speed, so we ran seeds in parallel instead of trying to speed up
+one run. Horizon 5 is ~12 % faster and horizon 30 ~13 % slower than
+horizon 15: only the imagined rollouts change length; the world-model
+update is the same in all three.
+
+Host RAM grows with the run: the replay buffer keeps every real step
+(`replay.size` 5e6), about 6 GB per 100k steps, 58–59 GB at ~960k. A
+checkpoint save on top passed the job's `--mem=64G`, and SLURM killed
+all nine runs there (section 8.4). A full 1M run needs about 70 GB.
 
 ![GPU utilisation and env steps per second, horizon 15 seed 0 (blue) vs horizon 5 seed 0 (orange)](../figures/gpu-usage.svg)
 
@@ -376,24 +390,25 @@ spread across seeds came from this one run. By ~960k it caught up
 
 ### 7.3 World-model losses
 
-![All eight losses of horizon 15 seed 0 over 500k steps](../figures/20261123-baseline-s0-losses.svg)
+![All eight losses of horizon 15 seed 0 up to ~960k steps](../figures/20261123-baseline-s0-losses.svg)
 
 Mean of the first 3 and last 10 log lines, horizon 15 seed 0:
 
-| Loss | ~3k steps | ~213k | ~495k |
-|---|---|---|---|
-| `image` | 89.8 | 3.59 | 3.52 |
-| `rew` | 0.565 | 0.035 | 0.040 |
-| `con` | 0.038 | 0.020 | 0.020 |
-| `dyn` (KL, nats) | 4.19 | 2.01 | 2.34 |
-| `value` (imagined) | 2.68 | 1.58 | 1.59 |
+| Loss | ~3k steps | ~213k | ~495k | ~960k |
+|---|---|---|---|---|
+| `image` | 89.8 | 3.59 | 3.52 | 3.28 |
+| `rew` | 0.565 | 0.035 | 0.040 | 0.047 |
+| `con` | 0.038 | 0.020 | 0.020 | 0.020 |
+| `dyn` (KL, nats) | 4.19 | 2.01 | 2.34 | 2.61 |
+| `value` (imagined) | 2.68 | 1.58 | 1.59 | 1.52 |
 
 The image and reward losses fall by more than 10 times in the first
 tens of thousands of steps, then stay flat. The KL between prior and
 posterior stays above the free-nats floor of 1: the prior never fully
-predicts what the frame adds. It rises slightly late in the run, when
-the agent reaches night and caves (section 8.1); we did not test this
-link.
+predicts what the frame adds. It rises slowly over the second half of
+the run, when the agent reaches night and caves (section 8.1); we did
+not test this link. The short spikes at ~213k and ~495k are the
+restarts of the run from a checkpoint.
 
 ### 7.4 Reward-prediction error
 
@@ -560,7 +575,7 @@ is a gap in our test, not evidence that the head predicts death well.
 | Smoke job killed at its time limit | upstream `e3f0224` ignores `--run.duration` | `--run.steps 100000` |
 | Open-loop job 172547 crashed on GPU only | JAX transfer guard refuses an implicit GPU-to-host copy | explicit `jax.device_get` |
 | Baseline stopped at 213k | project time budget | resumed with the same run ID to 500k |
-| All nine 1M jobs killed at 956k–979k steps | host memory above the job's 64 GB while saving a checkpoint; memory use grows during training (cause not measured) | kept as final runs; each `ckpt` is the last complete save, ~960k |
+| All nine 1M jobs killed at 956k–979k steps | host memory above the job's 64 GB while saving a checkpoint; the replay buffer keeps every step in RAM, 58–59 GB at ~960k | kept as final runs; each `ckpt` is the last complete save, ~960k |
 | No horizon 30 checkpoint at 500k | the `early-ckpt` copy was never made | no 500k eval for horizon 30 |
 | `env.txt` of every PERUN job up to 175209 shows the host's Python | `SIF` not exported in `slurm/common.sh` | exported (PR #62); real versions are the image's |
 

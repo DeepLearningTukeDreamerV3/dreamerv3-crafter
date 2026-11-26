@@ -20,12 +20,13 @@ python analysis/compare_runs.py --max-step 500000 \
     20261125-imag30-s0,20261125-imag30-s1,20261125-imag30-s2
 ```
 
-Use `--max-step 1000000` for the 1M figure. The 2-setting figure without
-`--max-step` in `docs/results.md` was made when the runs ended at 500k:
-after the 1M logs are fetched, remake it only with `--max-step 500000`.
+Without `--max-step` the figure covers the full runs to ~960k. The
+2-setting figure `20261124-imag5-s0-vs-20261123-baseline-s0-3seeds.svg`
+in `docs/results.md` was made before the resume and stops at 500k; remaking
+it now would need `--max-step 500000` to keep it the same.
 
 `dashboard.py` reads the checkpoint step and the horizon of an evaluation
-from `EXPERIMENTS.md`. Keep the text `(~495k steps` in the evaluation row
+from `EXPERIMENTS.md`. Keep the text `(~NNNk steps` (for example `(~960k steps`) in the evaluation row
 and `--agent.imag_length N` in the training row.
 
 ## Gameplay at each training stage
