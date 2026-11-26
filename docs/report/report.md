@@ -276,6 +276,13 @@ debug config with checkpoints. Every run has a row in
 `EXPERIMENTS.md` with its commit, flags and job ID, written before the
 run started; failed runs keep their rows.
 
+Checkpoints are not in the repository: they are too large for git and
+for the 5 MB file check. Each run's `ckpt` (last save, ~960k) and the
+early copies `ckpt_early_<step>` stay on the PERUN scratch storage under
+`/mnt/scratch/<user>/dreamer/logdir/<run-id>/`. That storage deletes
+files 60 days after their last access, so they must be copied elsewhere
+if they are needed after the project.
+
 ### 5.3 GPU use and wall-clock time
 
 Measured over each whole run, up to ~960k steps
@@ -298,7 +305,7 @@ update is the same in all three.
 Host RAM grows with the run: the replay buffer keeps every real step
 (`replay.size` 5e6), about 6 GB per 100k steps, 58–59 GB at ~960k. A
 checkpoint save on top passed the job's `--mem=64G`, and SLURM killed
-all nine runs there (section 8.4). A full 1M run needs about 70 GB.
+all nine runs there (section 8.5). A full 1M run needs about 70 GB.
 
 ![GPU utilisation and env steps per second, horizon 15 seed 0 (blue) vs horizon 5 seed 0 (orange)](../figures/gpu-usage.svg)
 
@@ -325,7 +332,7 @@ achievements more than many of the easy ones.
 
 ### 7.1 Return vs environment steps
 
-![Training return (mean over 3 seeds, with spread) and losses, horizons 15, 5 and 30](../figures/20261125-imag30-s0-vs-20261124-imag5-s0-vs-20261123-baseline-s0-3seeds.svg)
+![Training return, episode length and losses, mean over 3 seeds, horizons 15, 5 and 30](../figures/20261125-imag30-s0-vs-20261124-imag5-s0-vs-20261123-baseline-s0-3seeds.svg)
 
 Training return, mean of the last 50 episodes before each step count,
 mean ± sd across 3 seeds:
@@ -345,7 +352,21 @@ mean ± sd across 3 seeds:
 
 Return still rises at 950k, but slowly: +0.07 for horizon 15 since
 900k. The runs stopped at 956k–979k steps (out-of-memory kill while
-saving a checkpoint, section 8.4).
+saving a checkpoint, section 8.5).
+
+Episode length (second chart; mean of the last 50 training episodes,
+mean ± sd across seeds) grows much less than the return:
+
+| Env steps | Horizon 15 | Horizon 5 | Horizon 30 |
+|---|---|---|---|
+| 50k | 177 ± 5 | 178 ± 4 | 173 ± 4 |
+| 500k | 217 ± 15 | 208 ± 6 | 212 ± 11 |
+| 950k | 226 ± 25 | 209 ± 11 | 229 ± 7 |
+
+From 500k to 950k the return of horizon 15 rises by half (7.73 to
+11.45) while its episodes get only ~4 % longer. The agent improves by
+unlocking more achievements per episode, not by surviving longer. Every
+episode still ends in death; none reaches Crafter's 10,000-step limit.
 
 ### 7.2 Evaluation table
 
@@ -423,6 +444,18 @@ reward from the actions alone.
 "Achievement" = reward sum of at least 0.5 in the window.
 
 ![Same test at ~960k](../figures/20261126-openloop1m-s0-failures.svg)
+
+Policy and model improve in two phases. The image and reward losses
+fall by more than 10 times in the first tens of thousands of steps
+(section 7.3), while the return is still 3.51 at 100k and 4.33 at
+213k: the model learns to see before the actor has much to learn from. After that the one-step losses are
+flat, but the open-loop reward test keeps improving: from 6 hits and 9
+false alarms in 30 windows at ~213k to 17 hits and 3 false alarms at
+~960k. Over the same span the return of horizon 15 rises from 4.33 to
+11.45. The actor trains only on imagined rewards, so imagined rewards
+that match the real ones more often give it a more useful signal. This
+is a correlation over one seed's three checkpoints, not a controlled
+test.
 
 ### 7.5 Sensitivity: imagination horizon 5, 15 and 30
 
@@ -565,7 +598,34 @@ The continue head predicts ≥ 0.96 at every open-loop step, and no
 window contains a death (episodes last 56–430 steps, windows 64). This
 is a gap in our test, not evidence that the head predicts death well.
 
-### 8.4 Run failures
+### 8.4 Hidden and random events
+
+Two properties of Crafter limit what any world model can predict.
+
+Partial observability. The agent sees only a 9×7-tile window around the
+player, plus its inventory. A zombie or skeleton that walks in from
+outside the window cannot be predicted from the frames, and the model
+has no memory of a place it has left except what `deter` keeps. This
+likely explains part of the missed damage in section 8.2: the reward
+head cannot foresee a hit from a zombie it has not seen yet (not
+tested; it would need the zombie positions, which we did not log).
+
+Stochasticity. Zombies spawn at random, more often in the dark; cows
+move at random; and the night darkens the frame with random noise
+(section 8.1). The same latent state and action can lead to different
+next frames. The stochastic part of the latent state (`stoch`) is meant
+to represent this uncertainty, and the prior can only predict a
+distribution over outcomes, not the one that happens. The open-loop
+test compares one sampled future with the one real future, so part of
+its error is this randomness, not a modelling mistake.
+
+A useful prediction does not need the exact pixels. The decoder blurs
+small objects within the 32 open-loop steps (section 8.1), yet the
+actor still reaches a Crafter score of 18–23 %, because it trains on
+predicted rewards and values from the latent state, not on the
+decoded images.
+
+### 8.5 Run failures
 
 | What failed | Cause | Fix |
 |---|---|---|
@@ -589,7 +649,10 @@ is a gap in our test, not evidence that the head predicts death well.
 - Open-loop test. One seed, 27–30 windows per checkpoint: the counts
   are examples, not rates. Pixel MSE rewards blur and ignores small
   important objects. The 213k, 495k and 960k tests see different episodes.
-  No death occurs inside a window.
+  No death occurs inside a window. We compare predicted pixels,
+  rewards and continue flags, but not the latent states: the distance
+  between the open-loop prior and the posterior on the real frames was
+  not measured.
 - Sensitivity explanation not tested. The horizon effect follows
   from how imagination training works; we did not measure it directly.
 - Interactive stage not recorded. No `srun` session of stage 2 was

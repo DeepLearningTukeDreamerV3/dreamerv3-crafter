@@ -20,7 +20,8 @@ python analysis/compare_runs.py --max-step 500000 \
     20261125-imag30-s0,20261125-imag30-s1,20261125-imag30-s2
 ```
 
-Without `--max-step` the figure covers the full runs to ~960k. The
+Charts: return, episode length, value loss, image loss. Without
+`--max-step` the figure covers the full runs to ~960k. The
 2-setting figure `20261124-imag5-s0-vs-20261123-baseline-s0-3seeds.svg`
 in `docs/results.md` was made before the resume and stops at 500k; remaking
 it now would need `--max-step 500000` to keep it the same.
