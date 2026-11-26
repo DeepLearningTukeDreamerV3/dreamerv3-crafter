@@ -147,15 +147,19 @@ committed.
       Launched: `20261124-imag5-s0`, job 172542.
 - [x] Fill the evaluation table (assignment A.7) except the sensitivity row.
       Done in `docs/results.md`.
-- [ ] Extra (2026-11-25): resume the 6 runs to 1M env steps, and add
+- [x] Extra (2026-11-25): resume the 6 runs to 1M env steps, and add
       imagination horizon 30 (`20261125-imag30-s0/s1/s2`, also to 1M).
-      IDs and status in `EXPERIMENTS.md`.
+      IDs and status in `EXPERIMENTS.md`. All nine stopped at 956k–979k
+      steps (out-of-memory kill during a checkpoint save, 2026-11-25/26)
+      and were kept as final; evals `20261126-eval1m-*` in
+      `docs/results.md`.
 
 ## Week 7 — M4 / M5: sensitivity results and failures
 
 - [x] Sensitivity results vs default; explain the effect.
       Done in `docs/results.md` (eval `20261124-eval-imag5-s0`), then
-      repeated at ~495k with 3 seeds per setting (`20261125-eval500k-*`).
+      repeated at ~495k with 3 seeds per setting (`20261125-eval500k-*`)
+      and at ~960k with horizons 5, 15 and 30 (`20261126-eval1m-*`).
 - [x] Task 8: failure cases: error growth over the open-loop horizon,
       missed sparse rewards, reward-model errors, crashed or failed runs
       from `EXPERIMENTS.md`. Draft in `docs/failures.md` (213k and
