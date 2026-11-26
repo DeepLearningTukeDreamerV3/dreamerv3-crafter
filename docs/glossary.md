@@ -52,6 +52,11 @@ Plain-language definitions. Add terms when you meet new ones.
   much a result depends on luck; we report mean ± standard deviation
   across seeds (`docs/results.md`).
 - **Episode** — one game from start to end.
+- **Partial observability** — the agent sees only part of the world at
+  each step (in Crafter, a 9×7-tile window around the player), so some
+  events cannot be predicted from the frames.
+- **Stochasticity** — randomness in the environment: the same state and
+  action can lead to different next states (zombie spawns, cow moves).
 - **Return** / **episode score** — sum of rewards in an episode.
 - **Success rate** — share of episodes in which an achievement was
   unlocked at least once.

@@ -2,9 +2,10 @@
 """Compare two or three training runs on the same axes (Task 7, sensitivity).
 
 Reads runs/<run-id>/scores.jsonl and metrics.jsonl of the runs and writes
-docs/figures/<run-b>-vs-<run-a>.svg with three charts, x axis = env steps:
+docs/figures/<run-b>-vs-<run-a>.svg with four charts, x axis = env steps:
 
   episode return   moving average over 20 episodes
+  episode length   steps survived, moving average over 20 episodes
   value loss       critic, trained on imagined rollouts
   image loss       world model decoder, trained on real data
 
@@ -34,6 +35,7 @@ from plot_curves import BLUE, GREEN, ORANGE, ROOT, chart, moving_average, read_j
 
 CHARTS = [  # (file, key, title, smooth over episodes?)
     ("scores.jsonl", "episode/score", "Episode return (moving average, 20 episodes)", True),
+    ("metrics.jsonl", "episode/length", "Episode length (moving average, 20 episodes)", True),
     ("metrics.jsonl", "train/loss/value", "Value loss (critic, imagined data)", False),
     ("metrics.jsonl", "train/loss/image", "Image loss (decoder, real data)", False),
 ]
@@ -88,7 +90,7 @@ def main():
     # variants first, reference last: <b>-vs-<a> or <c>-vs-<b>-vs-<a>
     name = "-vs-".join(side[0] for side in reversed(sides))
     out = ROOT / "docs" / "figures" / f"{name}{suffix}.svg"
-    out.write_text(svg(3 * w, h + 24, body, f"{name.replace('-vs-', ' vs ')}{suffix}"))
+    out.write_text(svg(len(CHARTS) * w, h + 24, body, f"{name.replace('-vs-', ' vs ')}{suffix}"))
     print("wrote", out.relative_to(ROOT))
 
 
