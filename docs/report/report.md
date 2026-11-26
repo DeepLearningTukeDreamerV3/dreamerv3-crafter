@@ -272,7 +272,7 @@ caught them in short jobs before any long run depended on them.
 
 **Reproducibility.** A fresh clone on 2026-11-25, following only
 `README.md`, ran `./setup.sh` without failures and trained the CPU
-debug config with checkpoints (ROADMAP week 8). Every run has a row in
+debug config with checkpoints. Every run has a row in
 `EXPERIMENTS.md` with its commit, flags and job ID, written before the
 run started; failed runs keep their rows.
 
