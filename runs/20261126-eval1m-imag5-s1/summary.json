@@ -1,0 +1,32 @@
+{
+  "agent": "/logdir/20261124-imag5-s1/ckpt",
+  "episodes": 50,
+  "seed": 100,
+  "return_mean": 9.479999994933605,
+  "return_std": 2.189885840393533,
+  "crafter_score": 15.818712848795002,
+  "success_rates": {
+    "collect_coal": 0.24,
+    "collect_diamond": 0.0,
+    "collect_drink": 0.76,
+    "collect_iron": 0.0,
+    "collect_sapling": 0.94,
+    "collect_stone": 0.76,
+    "collect_wood": 1.0,
+    "defeat_skeleton": 0.06,
+    "defeat_zombie": 0.78,
+    "eat_cow": 0.2,
+    "eat_plant": 0.0,
+    "make_iron_pickaxe": 0.0,
+    "make_iron_sword": 0.0,
+    "make_stone_pickaxe": 0.02,
+    "make_stone_sword": 0.0,
+    "make_wood_pickaxe": 0.92,
+    "make_wood_sword": 0.84,
+    "place_furnace": 0.4,
+    "place_plant": 0.9,
+    "place_stone": 0.76,
+    "place_table": 0.96,
+    "wake_up": 0.84
+  }
+}

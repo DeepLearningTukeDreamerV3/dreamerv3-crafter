@@ -6,8 +6,9 @@ we found, and what is left. For the details, follow the links. Terms in
 `docs/recap.html`, published at
 https://deeplearningtukedreamerv3.github.io/dreamerv3-crafter/recap.html.
 
-State on 2026-11-25: all experiments are done, the fresh-clone check
-passes, and the final report is in `docs/report/report.md`. What remains
+State on 2026-11-26: all experiments are done, including the runs to
+~960k steps and horizon 30. The fresh-clone check passes, and the final
+report is in `docs/report/report.md`. What remains
 is for the team: read the report and the cited surveys, rehearse the
 demo (`docs/report/demo.md`).
 
@@ -66,23 +67,28 @@ The limit is training compute (one batch of 16×64 per 2 env steps), not
 the game. The GPU was busy ~85 % of the time. So we ran seeds in
 parallel instead of trying to make one run faster.
 
-**Budget.** The paper trains for 1M env steps (10 seeds). We trained to
-**500k env steps, 3 seeds per setting** (~9 h per run from scratch).
-This was a time decision: 1M steps would take ~18 h per run.
+**Budget.** The paper trains for 1M env steps (10 seeds). We first
+trained to 500k (3 seeds per setting, ~9 h per run), then resumed to 1M
+and added horizon 30. All nine runs were killed at 956k–979k steps for
+using more than the job's 64 GB of RAM while saving a checkpoint. We
+kept them as final: **~960k env steps, 3 seeds per setting**.
 
 ## 4. Runs
 
 | Run | Setting | Seed | Steps | Use |
 |---|---|---|---|---|
-| `20261123-baseline-s0` | official `crafter` | 0 | 500k (stopped at 213k, resumed) | main run |
-| `20261124-baseline-s1`, `-s2` | official `crafter` | 1, 2 | 500k | spread across seeds |
-| `20261124-imag5-s0` | `--agent.imag_length 5` | 0 | 500k (213k, resumed) | sensitivity (Task 7) |
-| `20261124-imag5-s1`, `-s2` | `--agent.imag_length 5` | 1, 2 | 500k | sensitivity across seeds |
-| `*-eval-*`, `*-eval500k-*` | `scripts/eval_agent.py` | – | – | 50 fixed eval worlds per checkpoint |
-| `*-openloop-*`, `*-openloop500k-*` | `scripts/openloop.py` | – | – | world-model prediction test |
+| `20261123-baseline-s0` | official `crafter` | 0 | ~964k (stopped at 213k and 500k, resumed) | main run |
+| `20261124-baseline-s1`, `-s2` | official `crafter` | 1, 2 | ~961k, ~979k | spread across seeds |
+| `20261124-imag5-s0` | `--agent.imag_length 5` | 0 | ~972k (213k and 500k, resumed) | sensitivity (Task 7) |
+| `20261124-imag5-s1`, `-s2` | `--agent.imag_length 5` | 1, 2 | ~978k, ~968k | sensitivity across seeds |
+| `20261125-imag30-s0`, `-s1`, `-s2` | `--agent.imag_length 30` | 0, 1, 2 | ~962k, ~963k, ~956k | second sensitivity value |
+| `*-eval-*`, `*-eval500k-*`, `*-eval1m-*` | `scripts/eval_agent.py` | – | – | 50 fixed eval worlds per checkpoint |
+| `*-openloop-*`, `*-openloop500k-*`, `*-openloop1m-*` | `scripts/openloop.py` | – | – | world-model prediction test |
+| `*-gameplay-*` | `scripts/eval_agent.py --video 5` | – | – | demo videos, 5 worlds per training stage |
 
 Checkpoints are saved every 15 min and not at the end of a run, so
-"500k" checkpoints are at ~495k steps and "213k" ones at ~208–213k.
+"500k" checkpoints are at ~495k steps, "213k" ones at ~208–213k, and
+the final ones at ~960k (last complete save before the kill).
 
 ## 5. Results
 
@@ -94,8 +100,8 @@ Every agent plays the same 50 Crafter worlds (world seed 100) in eval
 mode with `scripts/eval_agent.py`. *Crafter score* = geometric mean of
 the 22 *success rates*; it rewards a wide spread of achievements.
 
-"Horizon 15 (default)" is the official config; "horizon 5" changes only
-the imagination length. The horizon 15 run IDs still say `baseline`.
+"Horizon 15 (default)" is the official config; "horizon 5" and
+"horizon 30" change only the imagination length. The horizon 15 run IDs still say `baseline`.
 
 | Agent | Env steps | Return | Crafter score |
 |---|---|---|---|
@@ -104,6 +110,8 @@ the imagination length. The horizon 15 run IDs still say `baseline`.
 | Horizon 15 seed 0 | ~213k | 4.44 | 4.3 % |
 | Horizon 15 (default), 3 seeds (mean ± sd across seeds) | ~495k | 7.82 ± 1.65 | 11.3 ± 4.9 % |
 | per seed 0 / 1 / 2 | ~495k | 8.78 / 8.76 / 5.92 | 13.7 / 14.4 / 5.6 % |
+| **Horizon 15 (default), 3 seeds, final** | ~960k | **11.56 ± 0.11** | **23.0 ± 1.0 %** |
+| per seed 0 / 1 / 2 | ~960k | 11.64 / 11.44 / 11.60 | 23.5 / 21.9 / 23.6 % |
 
 - Each stage beats the one before, on both numbers. The agent learns.
 - What it learned, at ~495k: wood, table and wood pickaxe in almost
@@ -111,66 +119,73 @@ the imagination length. The horizon 15 run IDs still say `baseline`.
   and diamond never.
 - At ~495k the agents also survive longer than random (217 vs 175
   steps per episode). At 213k they did not yet.
-- **Seed 2 is stuck one stage behind**: wood pickaxe in only 8 % of
-  episodes, so no stone and nothing after it. One missed early step in
-  the tech tree blocks all later ones. This one seed makes most of the
-  spread.
+- **At ~495k seed 2 was stuck one stage behind**: wood pickaxe in only
+  8 % of episodes, so no stone and nothing after it. One missed early
+  step in the tech tree blocks all later ones.
+- **At ~960k it caught up.** The three seeds are within 0.2 return. They
+  finish the stone stage (furnace in 56–80 %, a stone pickaxe or sword)
+  and reach iron in a few episodes (up to 4 %). No iron tool, no diamond.
+  Episodes last 225 steps on average.
 
 ### 5.2 Learning curves over 3 seeds
 
-![Horizon 15 vs horizon 5, mean over 3 seeds](figures/20261124-imag5-s0-vs-20261123-baseline-s0-3seeds.svg)
+![Horizons 5, 15 and 30, mean over 3 seeds](figures/20261125-imag30-s0-vs-20261124-imag5-s0-vs-20261123-baseline-s0-3seeds.svg)
 
 Training return, mean of the last 50 episodes before each step count
 (3 seeds: mean ± standard deviation across seeds):
 
-| Env steps | Horizon 15 (default) | Horizon 5 |
-|---|---|---|
-| 100k | 3.51 ± 0.08 | 3.71 ± 0.39 |
-| 213k | 4.33 ± 0.17 | 4.71 ± 0.75 |
-| 300k | 5.55 ± 0.92 | 5.28 ± 0.79 |
-| 400k | 6.63 ± 1.31 | 6.17 ± 0.53 |
-| 500k | 7.87 ± 1.74 | 7.24 ± 0.10 |
+| Env steps | Horizon 15 (default) | Horizon 5 | Horizon 30 |
+|---|---|---|---|
+| 100k | 3.51 ± 0.08 | 3.71 ± 0.39 | 3.76 ± 0.05 |
+| 213k | 4.33 ± 0.17 | 4.71 ± 0.75 | 5.37 ± 0.34 |
+| 300k | 5.55 ± 0.92 | 5.28 ± 0.79 | 6.48 ± 0.10 |
+| 500k | 7.73 ± 1.85 | 7.25 ± 0.29 | 9.08 ± 0.40 |
+| 700k | 9.86 ± 0.14 | 9.13 ± 0.38 | 9.77 ± 0.25 |
+| 950k | 11.45 ± 0.18 | 10.03 ± 0.62 | 11.09 ± 0.35 |
 
-- Return still rises at 500k for every seed: training was not finished.
-- Horizon 15 seeds spread out after 300k (5.98 to 9.40 at 500k). Seeds of
-  horizon 5 stay together (7.18 to 7.36).
+- Return still rises at 950k, but slowly (+0.07 for horizon 15 since
+  900k).
+- Horizon 15 seeds spread out around 500k (seed 2 stuck), then come
+  back together by 700k.
 
-### 5.3 Sensitivity: imagination horizon 15 vs 5 (Task 7)
+### 5.3 Sensitivity: imagination horizon 5, 15 and 30 (Task 7)
 
-One flag changed: `--agent.imag_length 5`. The actor and critic learn
-from 5-step imagined rollouts instead of 15.
+One flag changed: `--agent.imag_length 5` or `30`. The actor and critic
+learn from 5- or 30-step imagined rollouts instead of 15.
 
-| Eval at ~495k (50 worlds) | Horizon 15 (default) | Horizon 5 |
-|---|---|---|
-| Return, mean ± sd across seeds | 7.82 ± 1.65 | 7.47 ± 0.31 |
-| Crafter score, mean ± sd | 11.3 ± 4.9 % | 9.4 ± 2.3 % |
-| Score per seed | 13.7 / 14.4 / 5.6 % | 7.8 / 12.0 / 8.4 % |
-| Defeat zombie (success rate) | 35 % | 57 % |
-| Place furnace | 25 % | 3 % |
-| Wood pickaxe | 63 % (seed 2: 8 %) | 79 % |
+| Eval at ~960k (50 worlds) | Horizon 15 (default) | Horizon 5 | Horizon 30 |
+|---|---|---|---|
+| Return, mean ± sd across seeds | **11.56 ± 0.11** | 10.03 ± 0.76 | 10.84 ± 0.42 |
+| Crafter score, mean ± sd | **23.0 ± 1.0 %** | 18.2 ± 5.0 % | 20.1 ± 0.7 % |
+| Score per seed | 23.5 / 21.9 / 23.6 % | 24.0 / 15.8 / 14.9 % | 20.0 / 20.8 / 19.4 % |
+| Place furnace (success rate) | 70 % | 43 % | 74 % |
+| Stone pickaxe | 51 % | 20 % | 37 % |
+| Stone sword | 39 % | 11 % | 0 % |
+
+At ~495k (horizons 5 and 15 only) the means were close: return 7.82 vs
+7.47, score 11.3 vs 9.4 %, inside the spread (`docs/results.md`).
 
 **What we found.**
 
-- Early (100k–213k) horizon 5 is ahead; from ~300k horizon 15 is.
-- At ~495k the means are close and inside the spread: with 3 seeds we
-  cannot call one setting better on average.
-- The two best agents use horizon 15 (13.7 and 14.4 %); no horizon-5
-  seed passes 12.0 %.
-- Horizon 5 is more consistent across seeds and kills more zombies (a
-  quick reward), but rarely builds a furnace (the longest chain the
-  agents reach).
-- At 213k horizon 5 never made a wood pickaxe; at ~495k all three seeds
-  do (72–88 %). The short horizon delayed the long chains; it did not
-  block them.
+- **The default, 15, ends best.** Every horizon 15 seed has a higher
+  return than every seed of the other two settings.
+- **Horizon 30 learns fastest, then levels off.** Ahead from 200k to
+  ~600k (9.08 vs 7.73 at 500k), passed by horizon 15 between 600k and
+  700k.
+- **Horizon 5 is ahead of 15 only very early** (100k–213k), last at the
+  end, and its seeds disagree most (score 14.9 to 24.0 %).
+- Horizon 5 builds the furnace (the longest chain) much less often; this
+  held at 213k, 495k and 960k.
 
 **Why.** An achievement chain like wood → table → pickaxe pays its +1
 many steps after the first action. With a 5-step rollout the actor sees
 that reward only through the critic's estimate at the end of the
 rollout, not as an imagined reward. Quick rewards (a zombie kill) fit
-inside 5 steps. So horizon 5 learns quick rewards early and is ahead
-at first, while horizon 15 is better at the long chains that matter
-more later. Horizon 5 is also ~13 % faster per env step (shorter
-rollouts).
+inside 5 steps. So horizon 5 favours quick rewards. A 30-step rollout
+sees long chains directly, which helps early. But every imagined step
+adds world-model error (5.4), so late in training the actor of horizon
+30 likely learns from less accurate futures. 15 is a balance between
+the two. We did not test this explanation directly.
 
 ### 5.4 Inside the world model: open-loop prediction (Task 4, Task 8)
 
@@ -183,6 +198,7 @@ frame). Details: `docs/failures.md`.
 |---|---|---|---|---|---|---|
 | ~213k | 0.009 | 0.011 | 0.023 | 0.032 | 0.030 / 0.034 | 0.53 / 0.26 |
 | ~495k | 0.021 | 0.020 | 0.029 | 0.048 | 0.029 / 0.038 | 0.50 / 0.70 |
+| ~960k | 0.017 | 0.018 | 0.027 | 0.042 | 0.028 / 0.038 | 1.08 / 1.35 |
 
 - **At 213k**: error triples over 32 steps (mistakes add up, no real
   frame to correct them). The model beats the copy from step 7 on. The
@@ -198,6 +214,11 @@ frame). Details: `docs/failures.md`.
   checkpoints (not done).
 - Reward at 495k is now *under*-predicted (0.50 vs 0.70): the agent
   collects more rewards and the model does not see them all coming.
+- **At 960k the error is lower than at 495k at every step**, but the
+  model beats the copy only at steps 7–12; at 32 steps the copy is
+  better (0.038 vs 0.042). Reward is still under-predicted (1.08 vs
+  1.35 per window), with about twice the reward per window of 495k,
+  because the agent collects more.
 - Continue head: ≥ 0.96 at every step, no death inside any window, so
   death prediction is untested.
 
@@ -210,17 +231,22 @@ score 14.5 ± 1.6 %, return 11.7 ± 1.9. Random agent 1.6 %.
 |---|---|---|---|---|
 | Paper | 1M | 10 | 14.5 ± 1.6 % | 11.7 ± 1.9 |
 | Ours | ~495k | 3 | 11.3 ± 4.9 % | 7.82 ± 1.65 |
-| Ours, seeds 0 and 1 | ~495k | 2 | 13.7 / 14.4 % | 8.78 / 8.76 |
+| **Ours, final** | ~960k | 3 | **23.0 ± 1.0 %** | **11.56 ± 0.11** |
 | Ours, random agent | – | – | 1.4 % | 1.52 |
 
 - **Random agent matches the paper** (1.4 vs 1.6 %): our evaluation and
   score formula behave like theirs.
-- **Two of three seeds reach the paper's score with half its steps.**
-  The mean is lower because of the stuck seed 2.
-- Return stays lower (7.8 vs 11.7): the paper's agents unlock more per
-  episode, our best ones a similar spread. Return still rises at 500k.
-- Other differences: 3 vs 10 seeds, 50 eval episodes of one checkpoint
-  instead of all training episodes, 2024 code vs the paper's 2023 code.
+- **At ~960k our return matches the paper** (11.56 vs 11.7 ± 1.9).
+- **Our score is higher** (23.0 vs 14.5 %). Most likely the protocol:
+  the benchmark computes success rates over all training episodes,
+  early bad ones included; ours come from 50 episodes of the final
+  checkpoint. The geometric mean punishes the low early rates. We could
+  not check this: our training logs do not keep achievements per
+  episode.
+- At ~495k two of three seeds already scored like the paper (13.7 and
+  14.4 %).
+- Other differences: ~960k vs 1M steps, 3 vs 10 seeds, 2024 code vs the
+  paper's 2023 code.
 
 ### 5.6 What failed (Task 8)
 
@@ -231,17 +257,21 @@ Full list: `docs/failures.md`, `EXPERIMENTS.md`.
 - Open-loop job crashed on GPU only (JAX transfer guard). Fixed with an
   explicit `jax.device_get`.
 - Baseline stopped by hand at 213k for time, then resumed to 500k.
+- All nine 1M runs were killed at 956k–979k steps: more than the
+  job's 64 GB of RAM while saving a checkpoint. Kept as final runs.
+- The horizon 30 checkpoint at 500k was never copied (`early-ckpt`), so
+  horizon 30 has no 500k eval.
 - 500k evals first failed to submit: the resumed runs rewrote their
   committed `env.txt` on the cluster, so `git switch` refused.
   `perun.sh` now restores such files when they match the committed copy.
 
 ## 6. Limits
 
-- 500k of the paper's 1M steps, 3 of its 10 seeds.
+- ~960k of the paper's 1M steps, 3 of its 10 seeds.
 - Evaluation: 50 episodes on fixed worlds of one checkpoint, not the
   benchmark protocol (success rates over all training episodes).
-- Open-loop: pixel MSE favours blur; 213k and 495k tests see different
-  states (night); no deaths in the windows.
+- Open-loop: pixel MSE favours blur; the 213k, 495k and 960k tests see
+  different states (night); no deaths in the windows.
 - Explanation of the horizon effect follows from how imagination
   training works; we did not test it directly (for example by
   measuring imagined reward per step for each horizon).
@@ -251,12 +281,12 @@ Full list: `docs/failures.md`, `EXPERIMENTS.md`.
 | # | Deliverable (assignment §7) | State | To do |
 |---|---|---|---|
 | 1 | Working installation, documented environment | done (fresh clone checked 2026-11-25) | – |
-| 2 | Reproduced baseline run (official config) | done (500k, 3 seeds) | – |
+| 2 | Reproduced baseline run (official config) | done (~960k, 3 seeds) | – |
 | 3 | Architecture / data-flow diagram | done (`docs/architecture.md`) | – |
 | 4 | Training logs and learning curves | done (`runs/`, `docs/figures/`) | – |
-| 5 | Prediction / imagination experiment | done (213k and 495k open loop) | optional: same episodes for both checkpoints |
+| 5 | Prediction / imagination experiment | done (213k, 495k and 960k open loop) | optional: same episodes for both checkpoints |
 | 6 | Random-agent and early-checkpoint baselines | done | – |
-| 7 | One controlled sensitivity experiment | done (3 seeds) | – |
+| 7 | One controlled sensitivity experiment | done (horizons 5 and 30, 3 seeds each) | – |
 | 8 | SLURM scripts and GPU execution evidence | done (`docs/gpu-evidence.md`: job IDs, wall-clock, ~88 % GPU use) | – |
 | 9 | Error analysis with failure cases | done (`docs/failures.md`, 213k and 495k) | turn into the report section |
 | 10 | Reproducible repository with README | done (fresh clone passes, README points to all results) | – |

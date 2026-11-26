@@ -25,12 +25,15 @@ publishes it as `gameplay.html` on the site once recordings are merged.
 All experiments are done; the 12 deliverables are ticked in
 [`ROADMAP.md`](ROADMAP.md).
 
-- Six runs of the official `crafter` config to ~495k env steps on one
-  H200 each: 3 seeds with the default imagination horizon (15), 3 with
-  horizon 5.
+- Nine runs of the official `crafter` config to ~960k env steps on one
+  H200 each: 3 seeds each with imagination horizon 15 (the default), 5
+  and 30. The runs stopped just before 1M (out-of-memory kill).
 - Crafter score: random 1.4 %, early checkpoint 2.7 %, ~213k 4.3 %,
-  ~495k **11.3 ± 4.9 %** (seeds 13.7 / 14.4 / 5.6 %). Paper: 14.5 % at 1M
-  steps.
+  ~495k 11.3 ± 4.9 %, ~960k **23.0 ± 1.0 %** (return 11.56). Paper at 1M:
+  14.5 %, return 11.7; the score gap comes mostly from a different
+  protocol (`docs/results.md`).
+- Horizon 15 ends best (23.0 %), ahead of 30 (20.1 %) and 5 (18.2 %).
+  Horizon 30 learns fastest up to ~600k, then falls behind.
 - The world model predicts frames better than "copy the last frame" from
   7 steps ahead, loses small objects first, and predicts rewards
   unreliably over 32 steps.
