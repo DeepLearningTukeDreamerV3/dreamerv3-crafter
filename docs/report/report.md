@@ -1,7 +1,7 @@
 # DreamerV3 on Crafter: training, measuring and explaining a world model
 
 Final technical report, TUKE MSc deep-learning group project
-(deliverable 11). State on 2026-11-25, repository commit on `main`.
+(deliverable 11). State on 2026-11-26, repository commit on `main`.
 Every number below comes from a file under `runs/`; run IDs and job IDs
 are in [`EXPERIMENTS.md`](../../EXPERIMENTS.md). Terms in *italics* are
 defined in [`docs/glossary.md`](../glossary.md).
@@ -34,32 +34,32 @@ rewards without seeing the game, and where it fails.
 
 Main findings:
 
-- **The agent learns.** Crafter score rises from 1.4 % (random agent) to
+- The agent learns. Its Crafter score rises from 1.4 % (random agent) to
   2.7 % (~50k steps), 4.3 % (~213k), 11.3 ± 4.9 % (~495k) and
   23.0 ± 1.0 % (~960k, three seeds). The final return, 11.56 ± 0.11,
   matches the paper's 11.7 ± 1.9. Our score is above the paper's
   14.5 %, most likely because we score the final agent only while the
   benchmark averages over all training episodes.
-- **Seeds can get stuck, then recover.** At ~495k one seed was stuck
+- Seeds can get stuck and then recover. At ~495k one seed was stuck
   before stone tools (5.6 %): in Crafter one missed early step blocks
   every later achievement. By ~960k it had caught up; the three seeds
   are within 0.2 return.
-- **The world model predicts the near future, then drifts.** Predicted
-  frames beat "repeat the last frame" only around 7 to 12 steps ahead
-  (and from step 7 on at ~213k); the error more than doubles in 32
+- The world model predicts the near future, then drifts. Predicted
+  frames beat "repeat the last frame" from step 7 on at ~213k, but
+  only from step 7 to 12 at ~960k; the error more than doubles in 32
   steps and small objects (trees, cows) fade first.
-- **Reward prediction is the weak point.** At ~213k the model predicts
+- Reward prediction is the weak point. At ~213k the model predicts
   twice the real reward over 32-step windows; at ~495k and ~960k it
   under-predicts and still never foresees health losses.
-- **Horizon 5, 15 and 30.** The default 15 ends best (score 23.0 %,
+- Of horizons 5, 15 and 30, the default 15 ends best (score 23.0 %,
   return 11.56); horizon 30 learns fastest until ~600k steps, then falls
   behind (20.1 %); horizon 5 ends last (18.2 %) and rarely builds a
   furnace, the longest chain. Every horizon 15 seed beats every seed of
   the other two settings on return.
-- **The GPU is the bottleneck**: busy 84–89 % of the time in every
-  production run, ~16 environment steps per second, ~9 h per 500k
-  steps. Host RAM grows with the replay buffer, ~6 GB per 100k steps,
-  which is what stopped the runs before 1M.
+- The GPU limits speed. It is busy 84–89 % of the time in every
+  production run, at ~16 environment steps per second, ~9 h per 500k
+  steps. Host RAM grows with the replay buffer by ~6 GB per 100k steps,
+  and that stopped the runs before 1M.
 
 ## 2. Background: world models
 
@@ -69,19 +69,19 @@ compact model of a game from pixels and train a controller inside its
 own "dream". LeCun (2022) argues that intelligent agents need models
 that predict in an abstract representation space rather than in pixels,
 because pixels contain much that cannot or need not be predicted. Our
-open-loop results (section 8.1) show exactly this problem: pixel error
+open-loop results (section 8.1) show this problem: pixel error
 punishes the model for random noise it cannot know about, and rewards
 blur.
 
 Two recent surveys place this work:
 
-- **General.** Ding et al. (2025) survey world models along two
+- General: Ding et al. (2025) survey world models along two
   purposes: building an internal representation to *understand* the
   world, and *predicting* future states for decision making. DreamerV3
   does both: its latent state is a learned representation, and its
   dynamics model predicts the next latent state for planning-free policy
   learning.
-- **Robotics and embodied AI.** Hou et al. (2026) and Li et al. (2025)
+- Robotics and embodied AI: Hou et al. (2026) and Li et al. (2025)
   survey world models for robot learning and embodied agents. In robotics,
   real interaction is slow, expensive and can break hardware, so learning
   behaviour inside a model (as DreamerV3 does) is attractive. Crafter is
@@ -90,11 +90,8 @@ Two recent surveys place this work:
 
 Other related surveys we used for background: Kirchner, Purschke and
 Knoll (2026) on uncertainty in world models for physical AI, Guan et al.
-(2024) on world models for autonomous driving, and Long et al. (2025).
-
-**Team note.** Every member must have read at least the Ding et al.
-and Hou et al. surveys before the defence and be able to say where
-DreamerV3 sits in them.
+(2024) on world models for autonomous driving, and Long et al. (2025)
+on learning embodied agents from simulators and world models.
 
 ## 3. The model
 
@@ -189,8 +186,6 @@ A KL below 1 nat gives no gradient (*free nats*), so a `dyn` curve at
 
 ## 4. Real experience and imagined rollouts
 
-This separation is the core of the method and of this report.
-
 **Real experience.** The agent plays Crafter with its current actor.
 Each frame, action, reward and episode flag goes into the replay buffer.
 The world model trains on batches of 16 replayed sequences of 64 steps
@@ -208,7 +203,7 @@ imagined state. From these labels the λ-return (λ = 0.95, discount
 ≈ 0.997) is computed, and the actor and critic learn from it. No frame,
 no encoder, no decoder, and no real reward is involved.
 
-**Consequences.**
+Three consequences follow:
 
 - The actor never sees a real reward. If the reward head is wrong, the
   actor learns the wrong thing (section 8.2).
@@ -272,8 +267,8 @@ cluster. Details: [`docs/hpc.md`](../hpc.md), evidence:
 | Evaluation | `slurm/03_eval.sbatch` | 172543–172545, 173381, 175203–175208, 176615–176622, 176678 | – |
 | Open loop | `slurm/04_openloop.sbatch` | 172547, 172548, 175209, 176679 | 172547 crashed on GPU only (JAX transfer guard); fixed before the long runs needed it |
 
-Both bugs appeared only on the cluster GPU, never on the laptop CPU.
-The staged workflow caught them in short jobs.
+Both bugs appeared only on the cluster GPU, and the staged workflow
+caught them in short jobs before any long run depended on them.
 
 **Reproducibility.** A fresh clone on 2026-11-25, following only
 `README.md`, ran `./setup.sh` without failures and trained the CPU
@@ -370,9 +365,9 @@ saving a checkpoint, section 8.4).
 three-seed rows. Per seed at ~495k: horizon 15 8.78 / 8.76 / 5.92 return,
 13.7 / 14.4 / 5.6 % score; horizon 5 7.22 / 7.82 / 7.36, 7.8 / 12.0 /
 8.4 %. Per seed at ~960k: horizon 15 11.64 / 11.44 / 11.60 return,
-23.5 / 21.9 / 23.6 % score. Each stage beats the one before. At ~495k the agents also
-survive longer than random (217 vs 175 steps per episode); at 213k
-they did not yet.
+23.5 / 21.9 / 23.6 % score. Each horizon 15 stage beats the one before.
+Survival grows more slowly: at 213k the agent lived no longer than the
+random one (176 steps per episode), at ~495k 217 steps, at ~960k 225.
 
 What the agents learned at ~495k (success rate, horizon 15 mean over 3
 seeds): collect wood 98 %, place table 96 %, collect drink 86 %, wood
@@ -382,7 +377,7 @@ pickaxe 95 %, collect stone 87 %, place furnace 70 %, stone pickaxe
 51 %, collect coal 43 %, stone sword 39 %, collect iron 1 %; no iron
 tool and no diamond. Full tables: [`docs/results.md`](../results.md).
 
-**At ~495k horizon 15 seed 2 was stuck one stage behind**: it made a
+At ~495k horizon 15 seed 2 was stuck one stage behind: it made a
 wood pickaxe in 8 % of episodes (seeds 0 and 1: ~90 %), so it never
 mined stone, and every later achievement stayed at 0. Most of the
 spread across seeds came from this one run. By ~960k it caught up
@@ -427,6 +422,8 @@ reward from the actions alone.
 
 "Achievement" = reward sum of at least 0.5 in the window.
 
+![Same test at ~960k](../figures/20261126-openloop1m-s0-failures.svg)
+
 ### 7.5 Sensitivity: imagination horizon 5, 15 and 30
 
 One flag changed (`--agent.imag_length 5` or `30`), same seeds, same
@@ -446,23 +443,23 @@ At ~495k (horizons 5 and 15 only): return 7.82 ± 1.65 vs 7.47 ± 0.31,
 score 11.3 ± 4.9 vs 9.4 ± 2.3 %, furnace 25 vs 3 %, defeat zombie 35 vs
 57 %. Horizon 5 ran at 17.8 env steps/s against 15.9.
 
-- **The default, 15, ends best.** Every horizon 15 seed has a higher
+- The default, 15, ends best. Every horizon 15 seed has a higher
   eval return than every seed of horizons 5 and 30. The gap to horizon 5
   (1.5) is twice its seed spread; the gap to 30 (0.7) is smaller.
-- **Horizon 30 learns fastest, then levels off.** It leads from 200k to
+- Horizon 30 learns fastest, then levels off. It leads from 200k to
   ~600k (9.08 vs 7.73 at 500k); horizon 15 passes it between 600k and
   700k.
-- **Horizon 5 is ahead of 15 only early** (100k and 213k). At ~495k the
+- Horizon 5 is ahead of 15 only early (100k and 213k). At ~495k the
   two were inside each other's spread; at ~960k horizon 5 is last and
   its seeds disagree most (score 14.9 to 24.0 %).
-- **Horizon 5 rarely builds a furnace**, the longest chain the agents
+- Horizon 5 rarely builds a furnace, the longest chain the agents
   reach (wood, table, pickaxe, stone, then the furnace): 0 of 50 wood
   pickaxes at 213k, furnace 3 % at 495k and 43 % at 960k. The short
   horizon delays long chains; it does not block them.
-- **Horizon 30 never makes a stone sword** (0 % on all seeds), though it
+- Horizon 30 never makes a stone sword (0 % on all seeds), though it
   builds the furnace as often as horizon 15.
 
-**Interpretation.** With a 5-step rollout, a reward 10 steps away
+Our interpretation: with a 5-step rollout, a reward 10 steps away
 reaches the actor only through the critic's estimate at the end of the
 rollout, not as an imagined reward; rewards within 5 steps are learned
 directly and early. A 30-step rollout sees long chains directly, which
@@ -521,44 +518,44 @@ steps after the last real frame.
 
 ![Open-loop prediction at ~213k: real frames and the model's predictions](../../runs/20261124-openloop-s0/media/openloop.png)
 
-- **Errors add up.** Each imagined step starts from the previous
+- Errors add up. Each imagined step starts from the previous
   imagined state, with no real frame to correct it. The error triples
   in 32 steps at ~213k.
-- **Copying wins for the first 6 steps.** The scene barely changes in a
+- Copying wins for the first 6 steps. The scene barely changes in a
   few steps, and the decoder blurs even with the real frame (MSE 0.008
   in context). From step 7 the model wins: it knows how the view moves
   when the player walks.
-- **Small and rare things fade first**: trees, sand edges, cows. The
-  player and large terrain stay. These small objects are what
-  achievements need.
-- **The ~495k numbers are not worse modelling.** The 495k agent
+- Small and rare things fade first: trees, sand edges, cows. The
+  player and large terrain stay, but achievements need the small
+  objects.
+- The ~495k numbers do not mean worse modelling. The 495k agent
   survives longer, so its windows reach night and caves. Crafter draws
   night darker and adds random noise, which no model can predict pixel
   by pixel. The two tests see different frames; a fair comparison would
   replay the same recorded episodes through both checkpoints (not done).
   This is the problem LeCun (2022) describes: a pixel loss demands
   details that cannot be predicted.
-- **At ~960k** the error is lower than at ~495k at every step, but the
+- At ~960k the error is lower than at ~495k at every step, but the
   model beats the copy only from step 7 to 12; from step 13 on copying
   the last frame is better (0.038 vs 0.042 at 32 steps).
 
 ### 8.2 Rewards: false alarms, then misses
 
-- **~213k: over-prediction.** 9 false alarms in 30 windows; the model
+- ~213k, over-prediction: 9 false alarms in 30 windows; the model
   predicts a full +1 where nothing happens. Possible causes (not
   tested): the imagined world drifts from the real one, or the model
   does not track which achievements were already unlocked (+1 is paid
   only the first time).
-- **~495k: under-prediction.** The agent unlocks more per window (0.70
+- ~495k, under-prediction: the agent unlocks more per window (0.70
   real) and the model misses 7 of 13 real achievement windows.
-- **~960k: more hits, still under-prediction.** 17 of 24 real
+- ~960k, more hits but still under-prediction: 17 of 24 real
   achievement windows are foreseen (hits), but 7 are missed and the
   predicted mean stays below the real one (1.08 vs 1.35).
-- **Health losses are never foreseen.** Windows where the real reward
+- Health losses are never foreseen. Windows where the real reward
   sum is negative (damage from hunger, thirst or zombies) get positive
   predictions at all three checkpoints (+0.24, +0.93 and +0.20).
 
-Why it matters: the actor learns only from imagined rewards (section 4).
+The actor learns only from imagined rewards (section 4), so these errors reach it directly.
 False alarms push it toward actions that pay nothing; missed rewards
 and missed damage hide what it should learn or avoid.
 
@@ -581,24 +578,24 @@ is a gap in our test, not evidence that the head predicts death well.
 
 ## 9. Limitations
 
-- **Budget.** ~960k of the paper's 1M steps, 3 of its 10 seeds. At
+- Budget. ~960k of the paper's 1M steps, 3 of its 10 seeds. At
   ~495k one stuck seed moved the mean by 3 points; at ~960k the seeds
   agree closely.
-- **Evaluation protocol.** 50 eval-mode episodes on fixed worlds from one
+- Evaluation protocol. 50 eval-mode episodes on fixed worlds from one
   checkpoint, not the benchmark's success rates over all training
   episodes. The training return over the last 50 episodes (11.45 at
   950k) is close to the eval return (11.56), so the return is
   comparable; the score is not (section 7.6).
-- **Open-loop test.** One seed, 27–30 windows per checkpoint: the counts
+- Open-loop test. One seed, 27–30 windows per checkpoint: the counts
   are examples, not rates. Pixel MSE rewards blur and ignores small
   important objects. The 213k, 495k and 960k tests see different episodes.
   No death occurs inside a window.
-- **Sensitivity explanation not tested.** The horizon effect follows
+- Sensitivity explanation not tested. The horizon effect follows
   from how imagination training works; we did not measure it directly.
-- **Interactive stage not recorded.** No `srun` session of stage 2 was
+- Interactive stage not recorded. No `srun` session of stage 2 was
   registered, and `sacct` was not reachable, so wall-clock times come
   from job logs.
-- **Fresh clone on the same laptop.** The reproducibility check used a
+- Fresh clone on the same laptop. The reproducibility check used a
   new clone and the README only, but the same machine with Docker's
   image cache.
 
@@ -606,7 +603,7 @@ is a gap in our test, not evidence that the head predicts death well.
 
 - DreamerV3 with the official configuration learns Crafter on our
   setup: from 1.4 % (random) to 23.0 % mean Crafter score at ~960k
-  steps, with a return (11.56) equal to the paper's.
+  steps, with a return (11.56) within the paper's spread (11.7 ± 1.9).
 - Real experience trains only the world model; imagined rollouts train
   only the actor and critic. We showed this split in the code
   (stop-gradient at `agent.py:196`) and in the logs (section 4).
@@ -614,16 +611,12 @@ is a gap in our test, not evidence that the head predicts death well.
   layout for 32 steps, but loses small objects first and predicts
   reward unreliably over long windows. Its reward errors go straight
   into the actor's training signal.
-- The imagination horizon matters, and the default is the best of the
-  three we tried. Horizon 5 learns quick rewards first but falls behind
+- Of the three horizons we tried, the default 15 ended best. Horizon 5 learns quick rewards first but falls behind
   on long chains; horizon 30 learns fastest early, then levels off,
   likely because long imagined rollouts accumulate model error.
 - Next steps, in order of value: replay the same recorded episodes
   through all checkpoints; test episode ends in open loop; measure
   imagined-reward error per rollout step for each horizon; more seeds.
-
-**The goal of this project was to demonstrate, measure and explain
-imagination-based control, not to reach the highest score.**
 
 ## 11. References
 
@@ -642,7 +635,8 @@ World-model surveys:
 - Guan, Y., et al. (2024). World models for autonomous driving: an
   initial survey. *IEEE Transactions on Intelligent Vehicles*.
   https://doi.org/10.1109/TIV.2024.3398357
-- Long, X., et al. (2025). arXiv:2507.00917.
+- Long, X., et al. (2025). A Survey: Learning Embodied Intelligence from
+  Physical Simulators and World Models. arXiv:2507.00917.
 
 Methods and environment:
 
